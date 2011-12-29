@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="ca.usask.cs.srlab.simcad.ui.preferences.SimCadPreferencePage"
+            id="ca.usask.cs.srlab.simcad.preferences.SimCadPreferencePage"
+            name="SimCad Preferences">
+      </page>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="ca.usask.cs.srlab.simcad.ui.preferences.PreferenceInitializer">
+      </initializer>
+   </extension>
+
+</plugin>
