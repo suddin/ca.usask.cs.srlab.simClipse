@@ -3,8 +3,12 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Simcad
 Bundle-SymbolicName: ca.usask.cs.srlab.simcad;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Bundle-Activator: ca.usask.cs.srlab.simcad.Activator
+Bundle-Activator: ca.usask.cs.srlab.simcad.SimCadActivator
 Require-Bundle: org.eclipse.ui,
- org.eclipse.core.runtime
+ org.eclipse.core.runtime,
+ org.eclipse.ui.ide;bundle-version="3.6.2",
+ org.eclipse.jdt.core;bundle-version="3.6.2",
+ org.eclipse.core.resources;bundle-version="3.6.1",
+ org.eclipse.core.expressions;bundle-version="3.4.200"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6

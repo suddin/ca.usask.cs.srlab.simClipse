@@ -1,9 +1,14 @@
 package ca.usask.cs.srlab.simcad.ui.preferences;
 
+import java.io.File;
+
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.*;
+import org.eclipse.jface.util.PropertyChangeEvent;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.IWorkbench;
-import ca.usask.cs.srlab.simcad.Activator;
+import ca.usask.cs.srlab.simcad.SimCadActivator;
 
 /**
  * Main Preference Page
@@ -14,36 +19,20 @@ public class SimCadPreferencePage
 	extends FieldEditorPreferencePage
 	implements IWorkbenchPreferencePage {
 
+	private DirectoryFieldEditor simcadDirPrefEditor;
+	
 	public SimCadPreferencePage() {
 		super(GRID);
-		setPreferenceStore(Activator.getDefault().getPreferenceStore());
-		setDescription("A demonstration of a preference page implementation");
+		setPreferenceStore(SimCadActivator.getDefault().getPreferenceStore());
+		setDescription("SimCad preference page");
 	}
 	
-	/**
-	 * Creates the field editors. Field editors are abstractions of
-	 * the common GUI blocks needed to manipulate various types
-	 * of preferences. Each field editor knows how to save and
-	 * restore itself.
-	 */
-	public void createFieldEditors() {
-		addField(new DirectoryFieldEditor(PreferenceConstants.P_PATH, 
-				"&Directory preference:", getFieldEditorParent()));
-		addField(
-			new BooleanFieldEditor(
-				PreferenceConstants.P_BOOLEAN,
-				"&An example of a boolean preference",
-				getFieldEditorParent()));
 
-		addField(new RadioGroupFieldEditor(
-				PreferenceConstants.P_CHOICE,
-			"An example of a multiple-choice preference",
-			1,
-			new String[][] { { "&Choice 1", "choice1" }, {
-				"C&hoice 2", "choice2" }
-		}, getFieldEditorParent()));
-		addField(
-			new StringFieldEditor(PreferenceConstants.P_STRING, "A &text preference:", getFieldEditorParent()));
+	public void createFieldEditors() {
+		simcadDirPrefEditor = new DirectoryFieldEditor(PreferenceConstants.SIMCAD_PATH, 
+				"&Path To SimCad:", getFieldEditorParent());
+		addField(simcadDirPrefEditor);
+		
 	}
 
 	/* (non-Javadoc)
@@ -51,5 +40,52 @@ public class SimCadPreferencePage
 	 */
 	public void init(IWorkbench workbench) {
 	}
+	
+	
+	protected void checkState() {
+	      super.checkState();
+	      if (!isValid())
+	         return;
+//	      String simcadPath = Activator.getDefault().getPreferenceStore().getString(PreferenceConstants.SIMCAD_PATH);
+//	      Shell shell = Activator.getDefault().getWorkbench().getActiveWorkbenchWindow().getShell();
+//	      MessageDialog.openInformation(shell,  simcadPath, simcadPath);
+	      
+	      if (!isSimCadInstallationValid(simcadDirPrefEditor.getStringValue())) {
+	         //setErrorMessage("Invalid SimCad installation");
+	         setValid(false);
+	      }
+	      else {
+	         setErrorMessage(null);
+	         setValid(true);
+	      }
+	}
+
+	private boolean isSimCadInstallationValid(String simcadDir) {
+		boolean result = false;
+		
+		if (!(new File(simcadDir)).isDirectory()){
+			setErrorMessage("Directory does not exists...");
+			result = false;
+		}else{
+			boolean runstate = true;
+			//check running simcad
+			
+			if(!runstate){
+				setErrorMessage("Invalid simcad installation...");
+				result = false;
+			}
+			else
+				result = true;
+		}
+		return result;
+	}
+
+	public void propertyChange(PropertyChangeEvent event) {
+	      super.propertyChange(event);
+	      if (event.getProperty().equals(FieldEditor.VALUE)) {
+	         if (event.getSource() == simcadDirPrefEditor)
+	            checkState();
+	      }
+	   }
 	
 }

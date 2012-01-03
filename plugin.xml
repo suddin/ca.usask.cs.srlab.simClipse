@@ -6,7 +6,7 @@
       <page
             class="ca.usask.cs.srlab.simcad.ui.preferences.SimCadPreferencePage"
             id="ca.usask.cs.srlab.simcad.preferences.SimCadPreferencePage"
-            name="SimCad Preferences">
+            name="SimCad">
       </page>
    </extension>
    <extension
@@ -14,6 +14,52 @@
       <initializer
             class="ca.usask.cs.srlab.simcad.ui.preferences.PreferenceInitializer">
       </initializer>
+   </extension>
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            id="ca.usask.cs.srlab.simcad.view.category1"
+            name="SimCad">
+      </category>
+      <view
+            category="ca.usask.cs.srlab.simcad.view.category1"
+            class="ca.usask.cs.srlab.simcad.ui.view.SimCadProjectView"
+            icon="icons/projects.gif"
+            id="ca.usask.cs.srlab.simcad.view.projects"
+            name="SimCad Projects"
+            restorable="true">
+      </view>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <category
+            description="Commands related to SimCad Projects View"
+            id="ca.usask.cs.srlab.simcad.category.projectView"
+            name="SimCad">
+      </category>
+      <category
+            description="Commands Related to SimCad Project Clone View"
+            id="ca.usask.cs.srlab.simcad.category.cloneView"
+            name="name">
+      </category>
+      <command
+            categoryId="ca.usask.cs.srlab.simcad.category.projectView"
+            description="Open SimCad Projects View if not already visible"
+            id="ca.usask.cs.srlab.simcad.commands.openSimCadProjectsView"
+            name="Open SimCad Projects View">
+      </command>
+      <command
+            categoryId="ca.usask.cs.srlab.simcad.category.projectView"
+            description="Add project to SimCad"
+            id="ca.usask.cs.srlab.simcad.command.addToSimCad"
+            name="Add to SimCad">
+      </command>
+      <command
+            categoryId="ca.usask.cs.srlab.simcad.category.projectView"
+            description="Remove project from SimCad"
+            id="ca.usask.cs.srlab.simcad.commands.removeFromSimCad"
+            name="Remove from SimCad">
+      </command>
    </extension>
 
 </plugin>
