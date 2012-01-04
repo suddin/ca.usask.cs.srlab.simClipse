@@ -18,14 +18,14 @@
    <extension
          point="org.eclipse.ui.views">
       <category
-            id="ca.usask.cs.srlab.simcad.view.category1"
+            id="ca.usask.cs.srlab.simcad.view.category.clonedetection"
             name="SimCad">
       </category>
       <view
-            category="ca.usask.cs.srlab.simcad.view.category1"
-            class="ca.usask.cs.srlab.simcad.ui.view.SimCadProjectView"
+            category="ca.usask.cs.srlab.simcad.view.category.clonedetection"
+            class="ca.usask.cs.srlab.simcad.ui.view.SimCadProjectsView"
             icon="icons/projects.gif"
-            id="ca.usask.cs.srlab.simcad.view.projects"
+            id="ca.usask.cs.srlab.simcad.ui.views.SimCadProjectsView"
             name="SimCad Projects"
             restorable="true">
       </view>
@@ -34,32 +34,313 @@
          point="org.eclipse.ui.commands">
       <category
             description="Commands related to SimCad Projects View"
-            id="ca.usask.cs.srlab.simcad.category.projectView"
+            id="ca.usask.cs.srlab.simcad.commands.category.projectView"
             name="SimCad">
       </category>
       <category
-            description="Commands Related to SimCad Project Clone View"
-            id="ca.usask.cs.srlab.simcad.category.cloneView"
-            name="name">
+            description="Commands related to SimCad Clone Detection"
+            id="ca.usask.cs.srlab.simcad.commands.category.processClone"
+            name="Clones">
       </category>
       <command
-            categoryId="ca.usask.cs.srlab.simcad.category.projectView"
+            categoryId="ca.usask.cs.srlab.simcad.commands.category.projectView"
             description="Open SimCad Projects View if not already visible"
             id="ca.usask.cs.srlab.simcad.commands.openSimCadProjectsView"
             name="Open SimCad Projects View">
       </command>
       <command
-            categoryId="ca.usask.cs.srlab.simcad.category.projectView"
+            categoryId="ca.usask.cs.srlab.simcad.commands.category.projectView"
             description="Add project to SimCad"
-            id="ca.usask.cs.srlab.simcad.command.addToSimCad"
+            id="ca.usask.cs.srlab.simcad.commands.addToSimCad"
             name="Add to SimCad">
       </command>
       <command
-            categoryId="ca.usask.cs.srlab.simcad.category.projectView"
+            categoryId="ca.usask.cs.srlab.simcad.commands.category.projectView"
             description="Remove project from SimCad"
             id="ca.usask.cs.srlab.simcad.commands.removeFromSimCad"
             name="Remove from SimCad">
       </command>
+      <command
+            categoryId="ca.usask.cs.srlab.simcad.commands.category.processClone"
+            description="Update Clone Index"
+            id="ca.usask.cs.srlab.simcad.commands.updateCloneIndex"
+            name="Update Clone Index">
+      </command>
+      <command
+            categoryId="ca.usask.cs.srlab.simcad.commands.category.processClone"
+            description="Detect Clone in Project"
+            id="ca.usask.cs.srlab.simcad.commands.detectClone"
+            name="Detect Clones in Project">
+      </command>
+      <command
+            categoryId="ca.usask.cs.srlab.simcad.commands.category.processClone"
+            description="View Clones in Project"
+            id="ca.usask.cs.srlab.simcad.commands.viewClone"
+            name="View Clones in Project">
+      </command>
+      <command
+            categoryId="ca.usask.cs.srlab.simcad.commands.category.processClone"
+            description="Change SimCad Settings"
+            id="ca.usask.cs.srlab.simcad.commands.changeSimCadSettings"
+            name="SimCad Settings">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            allPopups="false"
+            locationURI="menu:org.eclipse.ui.main.menu?after=additions">
+         <menu
+               id="ca.usask.cs.srlab.simcad.menus.simcadMenu"
+               label="SimCad"
+               mnemonic="s">
+            <command
+                  commandId="ca.usask.cs.srlab.simcad.commands.openSimCadProjectsView"
+                  icon="icons/simcad.png"
+                  id="ca.usask.cs.srlab.simcad.menus.openSimCadProjectsView"
+                  mnemonic="O"
+                  style="push">
+               <visibleWhen
+                     checkEnabled="false">
+                  <with
+                        variable="activeContexts">
+                     <iterate
+                           ifEmpty="false"
+                           operator="or">
+                        <equals
+                              value="ca.usask.cs.srlab.simcad.workbenchActionSet">
+                        </equals>
+                     </iterate>
+                  </with>
+               </visibleWhen>
+            </command>
+         </menu>
+      </menuContribution>
+      <menuContribution
+            allPopups="false"
+            locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
+         <toolbar
+               id="ca.usask.cs.srlab.simcad.toolbars.simcadMenu">
+            <command
+                  commandId="ca.usask.cs.srlab.simcad.commands.openSimCadProjectsView"
+                  icon="icons/simcad.png"
+                  id="ca.usask.cs.srlab.simcad.toolbars.openSimCadProjectsView"
+                  style="push"
+                  tooltip="Open SimCad Projects view">
+               <visibleWhen
+                     checkEnabled="false">
+                  <with
+                        variable="activeContexts">
+                     <iterate
+                           ifEmpty="false"
+                           operator="or">
+                        <equals
+                              value="ca.usask.cs.srlab.simcad.workbenchActionSet">
+                        </equals>
+                     </iterate>
+                  </with>
+               </visibleWhen>
+            </command>
+         </toolbar>
+      </menuContribution>
+      <menuContribution
+            allPopups="false"
+            locationURI="popup:org.eclipse.ui.popup.any?after=additions">
+         <menu
+               id="ca.usask.cs.srlab.simcad.popups.simcadMenu"
+               label="SimCad">
+            <command
+                  commandId="ca.usask.cs.srlab.simcad.commands.addToSimCad"
+                  icon="icons/add.gif"
+                  id="ca.usask.cs.srlab.simcad.popups.addToSimCad"
+                  style="push">
+               <visibleWhen
+                     checkEnabled="false">
+                  <with
+                        variable="selection">
+                     <iterate
+                           ifEmpty="false"
+                           operator="or">
+                        <and>
+                           <instanceof
+                                 value="org.eclipse.core.resources.IProject">
+                           </instanceof>
+                           <test
+                                 forcePluginActivation="true"
+                                 property="ca.usask.cs.srlab.simcad.notSimCadItem">
+                           </test>
+                        </and>
+                     </iterate>
+                  </with>
+               </visibleWhen>
+            </command>
+            <command
+                  commandId="ca.usask.cs.srlab.simcad.commands.removeFromSimCad"
+                  icon="icons/delete.gif"
+                  id="ca.usask.cs.srlab.simcad.popups.removeFromSimCad"
+                  style="push">
+               <visibleWhen
+                     checkEnabled="false">
+                  <with
+                        variable="selection">
+                     <iterate
+                           ifEmpty="false"
+                           operator="or">
+                        <and>
+                           <instanceof
+                                 value="org.eclipse.core.resources.IProject">
+                           </instanceof>
+                           <test
+                                 property="ca.usask.cs.srlab.simcad.isSimCadItem">
+                           </test>
+                        </and>
+                     </iterate>
+                  </with>
+               </visibleWhen>
+            </command>
+            <command
+                  commandId="ca.usask.cs.srlab.simcad.commands.changeSimCadSettings"
+                  icon="icons/settings.png"
+                  id="ca.usask.cs.srlab.simcad.popups.changeSimCadSettings"
+                  style="push">
+               <visibleWhen
+                     checkEnabled="false">
+                  <with
+                        variable="selection">
+                     <iterate
+                           ifEmpty="false"
+                           operator="or">
+                        <and>
+                           <instanceof
+                                 value="org.eclipse.core.resources.IProject">
+                           </instanceof>
+                           <test
+                                 property="ca.usask.cs.srlab.simcad.isSimCadItem">
+                           </test>
+                        </and>
+                     </iterate>
+                  </with>
+               </visibleWhen>
+            </command>
+            <menu
+                  icon="icons/clones.png"
+                  id="ca.usask.cs.srlab.simcad.popups.simcadMenu.clonesMenu"
+                  label="Clones">
+               <command
+                     commandId="ca.usask.cs.srlab.simcad.commands.updateCloneIndex"
+                     id="ca.usask.cs.srlab.simcad.popups.updateCloneIndex"
+                     style="push">
+               </command>
+               <command
+                     commandId="ca.usask.cs.srlab.simcad.commands.detectClone"
+                     id="ca.usask.cs.srlab.simcad.popups.detectClone"
+                     style="push">
+               </command>
+               <command
+                     commandId="ca.usask.cs.srlab.simcad.commands.viewClone"
+                     id="ca.usask.cs.srlab.simcad.popups.viewClone"
+                     style="push">
+               </command>
+               <visibleWhen
+                     checkEnabled="false">
+                  <with
+                        variable="selection">
+                     <iterate
+                           ifEmpty="false"
+                           operator="or">
+                        <and>
+                           <instanceof
+                                 value="org.eclipse.core.resources.IProject">
+                           </instanceof>
+                           <test
+                                 property="ca.usask.cs.srlab.simcad.isSimCadItem">
+                           </test>
+                        </and>
+                     </iterate>
+                  </with>
+               </visibleWhen>
+            </menu>
+         </menu>
+      </menuContribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.actionSets">
+      <actionSet
+            id="ca.usask.cs.srlab.simcad.workbenchActionSet"
+            label="SimCad ActionSet"
+            visible="true">
+      </actionSet>
+   </extension>
+   <extension
+         point="org.eclipse.core.expressions.propertyTesters">
+      <propertyTester
+            class="ca.usask.cs.srlab.simcad.model.SimCadItemTester"
+            id="ca.usask.cs.srlab.simcad.propertyTesters.isSimCadItem"
+            namespace="ca.usask.cs.srlab.simcad"
+            properties="isSimCadItem, notSimCadItem"
+            type="java.lang.Object">
+      </propertyTester>
+   </extension>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            class="ca.usask.cs.srlab.simcad.ui.handler.OpenSimCadProjectsViewHandler"
+            commandId="ca.usask.cs.srlab.simcad.commands.openSimCadProjectsView">
+      </handler>
+      <handler
+            class="ca.usask.cs.srlab.simcad.ui.handler.AddToSimCadHandler"
+            commandId="ca.usask.cs.srlab.simcad.commands.addToSimCad">
+         <enabledWhen>
+            <count
+                  value="1">
+            </count>
+         </enabledWhen>
+      </handler>
+      <handler
+            class="ca.usask.cs.srlab.simcad.ui.handler.RemoveFromSimCadHandler"
+            commandId="ca.usask.cs.srlab.simcad.commands.removeFromSimCad">
+         <enabledWhen>
+            <count
+                  value="1">
+            </count>
+         </enabledWhen>
+      </handler>
+      <handler
+            class="ca.usask.cs.srlab.simcad.ui.handler.SimCadSettingsHandler"
+            commandId="ca.usask.cs.srlab.simcad.commands.changeSimCadSettings">
+         <enabledWhen>
+            <count
+                  value="1">
+            </count>
+         </enabledWhen>
+      </handler>
+      <handler
+            class="ca.usask.cs.srlab.simcad.ui.handler.CloneIndexUpdateHandler"
+            commandId="ca.usask.cs.srlab.simcad.commands.updateCloneIndex">
+         <enabledWhen>
+            <count
+                  value="1">
+            </count>
+         </enabledWhen>
+      </handler>
+      <handler
+            class="ca.usask.cs.srlab.simcad.ui.handler.DetectCloneHandler"
+            commandId="ca.usask.cs.srlab.simcad.commands.detectClone">
+         <enabledWhen>
+            <count
+                  value="1">
+            </count>
+         </enabledWhen>
+      </handler>
+      <handler
+            class="ca.usask.cs.srlab.simcad.ui.handler.DisplayCloneHandler"
+            commandId="ca.usask.cs.srlab.simcad.commands.viewClone">
+         <enabledWhen>
+            <count
+                  value="1">
+            </count>
+         </enabledWhen>
+      </handler>
    </extension>
 
 </plugin>

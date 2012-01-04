@@ -7,8 +7,7 @@ import org.eclipse.core.expressions.PropertyTester;
  */
 public class SimCadItemTester extends PropertyTester {
 
-	public boolean test(Object receiver, String property, Object[] args,
-			Object expectedValue) {
+	public boolean test(Object receiver, String property, Object[] args, Object expectedValue) {
 		
 		boolean found = false;
 		ISimCadItem[] favorites = SimCadManager.getManager().getSimCadItems();

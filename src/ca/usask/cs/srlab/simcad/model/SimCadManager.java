@@ -1,8 +1,6 @@
 package ca.usask.cs.srlab.simcad.model;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -168,8 +166,8 @@ public class SimCadManager
       
       IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
       simCadItems = new HashSet<ISimCadItem>(projects.length); 
-      for (int i = 0; i < projects.length; i++)
-    	  simCadItems.add(new SimCadResource( SimCadItemType.WORKBENCH_PROJECT, projects[i]));
+      //for (int i = 0; i < projects.length; i++)
+    	//  simCadItems.add(new SimCadResource( SimCadItemType.WORKBENCH_PROJECT, projects[i]));
       /*
       simCadItems = new HashSet<ISimCadItem>(20);
       FileReader reader = null;

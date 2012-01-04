@@ -8,7 +8,7 @@ import org.eclipse.ui.IMemento;
 import ca.usask.cs.srlab.simcad.model.ISimCadItem;
 import ca.usask.cs.srlab.simcad.util.StringMatcher;
 
-public class FavoritesViewNameFilter extends ViewerFilter
+public class SimCadProjectsViewNameFilter extends ViewerFilter
 {
    private static final String TAG_PATTERN = "pattern";
    private static final String TAG_TYPE = "NameFilterInfo";
@@ -17,7 +17,7 @@ public class FavoritesViewNameFilter extends ViewerFilter
    private String pattern = "";
    private StringMatcher matcher;
    
-   public FavoritesViewNameFilter(StructuredViewer viewer) {
+   public SimCadProjectsViewNameFilter(StructuredViewer viewer) {
       this.viewer = viewer;
    }
 

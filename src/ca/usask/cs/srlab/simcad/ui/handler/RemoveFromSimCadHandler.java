@@ -14,7 +14,7 @@ import ca.usask.cs.srlab.simcad.model.SimCadManager;
  * Remove each currently selected object from the Favorites collection if it has
  * not already been removed.
  */
-public class RemoveFavoritesHandler extends AbstractHandler
+public class RemoveFromSimCadHandler extends AbstractHandler
 {
    public Object execute(ExecutionEvent event)
          throws ExecutionException {

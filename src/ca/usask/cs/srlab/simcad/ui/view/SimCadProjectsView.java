@@ -12,14 +12,12 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.IMemento;
-import org.eclipse.ui.internal.dialogs.ViewContentProvider;
-import org.eclipse.ui.internal.dialogs.ViewLabelProvider;
 import org.eclipse.ui.part.ViewPart;
 
 import ca.usask.cs.srlab.simcad.model.ISimCadItem;
 import ca.usask.cs.srlab.simcad.model.SimCadManager;
 
-public class SimCadProjectView extends ViewPart {
+public class SimCadProjectsView extends ViewPart {
 
 	private TableViewer viewer;
 	private TableColumn typeColumn; 
@@ -29,8 +27,10 @@ public class SimCadProjectView extends ViewPart {
 	private SimCadProjectsViewSorter sorter;
 	private IMemento memento;
 
+	public static final String ID =
+        "ca.usask.cs.srlab.simcad.ui.views.SimCadProjectsView";
 	
-	public SimCadProjectView() {
+	public SimCadProjectsView() {
 		// TODO Auto-generated constructor stub
 	}
 
@@ -68,6 +68,7 @@ public class SimCadProjectView extends ViewPart {
 		
 	}
 
+	@SuppressWarnings("unchecked")
 	private void createTableSorter() {
 		Comparator<ISimCadItem> nameComparator = new Comparator<ISimCadItem>() {
 			public int compare(ISimCadItem i1, ISimCadItem i2) {
