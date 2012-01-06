@@ -2,12 +2,13 @@ package ca.usask.cs.srlab.simcad.ui.preferences;
 
 import java.io.File;
 
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.preference.*;
+import org.eclipse.jface.preference.DirectoryFieldEditor;
+import org.eclipse.jface.preference.FieldEditor;
+import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.util.PropertyChangeEvent;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPreferencePage;
+
 import ca.usask.cs.srlab.simcad.SimCadActivator;
 
 /**

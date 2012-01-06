@@ -1,27 +1,35 @@
 package ca.usask.cs.srlab.simcad.model;
 
-import java.io.File;
-import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.ui.IMemento;
-import org.eclipse.ui.XMLMemento;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.NullProgressMonitor;
 
-import ca.usask.cs.srlab.simcad.SimCadActivator;
+import ca.usask.cs.srlab.simcad.SimCadConstants;
+import ca.usask.cs.srlab.simcad.SimCadLog;
+import ca.usask.cs.srlab.simcad.util.FileUtil;
+import ca.usask.cs.srlab.simcad.util.PropertyUtil;
 
 public class SimCadManager
 {
-   private static final String TAG_FAVORITES = "Favorites";
-   private static final String TAG_FAVORITE = "Favorite";
-   private static final String TAG_TYPEID = "TypeId";
-   private static final String TAG_INFO = "Info";
+//   private static final String TAG_FAVORITES = "Favorites";
+//   private static final String TAG_FAVORITE = "Favorite";
+//   private static final String TAG_TYPEID = "TypeId";
+//   private static final String TAG_INFO = "Info";
 
    private static SimCadManager manager;
    private Collection<ISimCadItem> simCadItems;
@@ -76,7 +84,7 @@ public class SimCadManager
          fireSimCadItemsChanged(added, ISimCadItem.NONE);
       }
    }
-
+   
    public void removeSimCadItems(Object[] objects) {
       if (objects == null)
          return;
@@ -156,9 +164,109 @@ public class SimCadManager
          iter.next().itemsChanged(event);
    }
 
+   
+   // 
+   // simcad project specific setup
+   //
+   
+   public void activateSimcadForProject(IProject project){
+		
+		IPath simcadDataFolder = project.getLocation().append(SimCadConstants.SIMCAD_DATA_FOLDER);
+		
+		if (simcadDataFolder.toFile().exists()
+				&& simcadDataFolder
+						.append(SimCadConstants.SIMCAD_SETTINGS_FILE).toFile()
+						.exists()) {
+
+			PropertyUtil.addOrUpdateSimcadProperties(simcadDataFolder, "simcad.settings.local.active", "true");
+			
+		} else {
+			Map<Object, Object> propsMap = new HashMap<Object, Object>();
+			propsMap.put("simcad.settings.local.active", "true");
+			propsMap.put("simcad.settings.local.preprocessing.minfragmentsize","5");
+			propsMap.put("simcad.settings.local.preprocessing.mincloneclasssize","2");
+			propsMap.put("simcad.settings.local.preprocessing.granularity","function");
+			propsMap.put("simcad.settings.local.preprocessing.rename","none");
+			propsMap.put("simcad.settings.local.detection.simthreshold","0");
+			
+			propsMap.put("simcad.status.local.preprocessing.extract.function","");
+			propsMap.put("simcad.status.local.preprocessing.extract.block","");
+			propsMap.put("simcad.status.local.preprocessing.indexing.function","");
+			propsMap.put("simcad.status.local.preprocessing.indexing.block","");
+			
+			PropertyUtil.addOrUpdateSimcadProperties(simcadDataFolder, propsMap);
+		}
+		
+		/*
+		
+		if(!simcadDataFolder.toFile().exists()){
+			
+			try {
+			PropertiesConfiguration config = new PropertiesConfiguration(simcadDataFolder.append(SimCadConstants.SIMCAD_SETTINGS_FILE).toString());
+			config.addProperty("!project specific settings for simcad", "");
+			config.addProperty("simcad.settings.local.preprocessing.minfragmentsize","5");
+			config.addProperty("simcad.settings.local.preprocessing.mincloneclasssize","2");
+			config.addProperty("simcad.settings.local.preprocessing.granularity","function");
+			config.addProperty("simcad.settings.local.preprocessing.rename","none");
+			config.addProperty("simcad.settings.local.detection.simthreshold","0");
+			
+			config.addProperty("simcad.status.local.preprocessing.extract.function","");
+			config.addProperty("simcad.status.local.preprocessing.extract.block","");
+			config.addProperty("simcad.status.local.preprocessing.indexing.function","");
+			config.addProperty("simcad.status.local.preprocessing.indexing.block","");
+			
+			simcadDataFolder.toFile().mkdir();
+			
+			
+				config.save();
+			} catch (ConfigurationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		
+		}
+		*/
+		
+		try {
+			SimCadManager.getManager().addSimCadItems(new IProject[]{ project});
+			project.refreshLocal(IResource.DEPTH_ONE, new NullProgressMonitor());
+		} catch (CoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+   public void deactivateSimcadForProject(IProject project, boolean keepSimcadData) {
+		IPath simcadDataFolder = project.getLocation().append(SimCadConstants.SIMCAD_DATA_FOLDER);
+		
+		if(!keepSimcadData && simcadDataFolder.toFile().exists()){
+			boolean cleanedUp = FileUtil.deleteDirectory(simcadDataFolder.toFile());
+			if(!cleanedUp){
+				//should not be happened, something went wrong!
+				SimCadLog.logError(new Exception("Could not remode simcad data directory"));
+			}
+		} else if (simcadDataFolder.toFile().exists()
+				&& simcadDataFolder
+						.append(SimCadConstants.SIMCAD_SETTINGS_FILE).toFile()
+						.exists()) {
+
+			PropertyUtil.addOrUpdateSimcadProperties(simcadDataFolder, "simcad.settings.local.active", "false");
+		} else {
+			// should not be happened!
+		}
+		
+		try {
+			SimCadManager.getManager().removeSimCadItems(new IProject[]{ project});
+			project.refreshLocal(IResource.DEPTH_ONE, new NullProgressMonitor());
+		} catch (CoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+   
    // /////////////////////////////////////////////////////////////////////////
    //
-   // Persisting favorites
+   // Persisting Simcad projects listing
    //
    // /////////////////////////////////////////////////////////////////////////
 
@@ -166,8 +274,27 @@ public class SimCadManager
       
       IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
       simCadItems = new HashSet<ISimCadItem>(projects.length); 
-      //for (int i = 0; i < projects.length; i++)
-    	//  simCadItems.add(new SimCadResource( SimCadItemType.WORKBENCH_PROJECT, projects[i]));
+      for (int i = 0; i < projects.length; i++){
+    	  IProject project = projects[i];
+    	  IPath simcadDataFolder = project.getLocation().append(SimCadConstants.SIMCAD_DATA_FOLDER);
+    	  if(simcadDataFolder.toFile().exists()
+    			  && simcadDataFolder.append(SimCadConstants.SIMCAD_SETTINGS_FILE).toFile().exists()){
+    		  
+    		  Properties properties = new Properties();
+    		  try {
+    			  properties.load(new FileInputStream(simcadDataFolder.append(SimCadConstants.SIMCAD_SETTINGS_FILE).toFile()));
+				} catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+    		  
+				if(properties.getProperty("simcad.settings.local.active").equals("true"))
+					simCadItems.add(new SimCadResource( SimCadItemType.WORKBENCH_PROJECT, project));
+    	  }
+      }
       /*
       simCadItems = new HashSet<ISimCadItem>(20);
       FileReader reader = null;
@@ -197,6 +324,7 @@ public class SimCadManager
       
    }
 
+   /*
    private void loadSimCadItems(XMLMemento memento) {
       IMemento[] children = memento.getChildren(TAG_FAVORITE);
       for (int i = 0; i < children.length; i++) {
@@ -258,4 +386,5 @@ public class SimCadManager
             .append("favorites.xml")
             .toFile();
    }
+   */
 }

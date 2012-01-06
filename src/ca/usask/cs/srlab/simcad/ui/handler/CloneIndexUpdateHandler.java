@@ -38,8 +38,8 @@ public class CloneIndexUpdateHandler extends AbstractHandler {
 		// Open and simcad settings window
 
 		try {
-
-			ISelection selection = page.getSelection();
+			ISelection selection = HandlerUtil.getCurrentSelection(event);
+			//ISelection selection = page.getSelection();
 
 			if (!(selection instanceof IStructuredSelection))
 				return null;

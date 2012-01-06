@@ -50,15 +50,15 @@
       </command>
       <command
             categoryId="ca.usask.cs.srlab.simcad.commands.category.projectView"
-            description="Add project to SimCad"
-            id="ca.usask.cs.srlab.simcad.commands.addToSimCad"
-            name="Add to SimCad">
+            description="Add SimCad to project"
+            id="ca.usask.cs.srlab.simcad.commands.addSimCad"
+            name="Add to Project">
       </command>
       <command
             categoryId="ca.usask.cs.srlab.simcad.commands.category.projectView"
-            description="Remove project from SimCad"
-            id="ca.usask.cs.srlab.simcad.commands.removeFromSimCad"
-            name="Remove from SimCad">
+            description="Remove SimCad from project"
+            id="ca.usask.cs.srlab.simcad.commands.removeSimCad"
+            name="Remove from Project">
       </command>
       <command
             categoryId="ca.usask.cs.srlab.simcad.commands.category.processClone"
@@ -80,9 +80,9 @@
       </command>
       <command
             categoryId="ca.usask.cs.srlab.simcad.commands.category.processClone"
-            description="Change SimCad Settings"
+            description="Update SimCad Settings"
             id="ca.usask.cs.srlab.simcad.commands.changeSimCadSettings"
-            name="SimCad Settings">
+            name="Update Settings">
       </command>
    </extension>
    <extension
@@ -150,9 +150,9 @@
                id="ca.usask.cs.srlab.simcad.popups.simcadMenu"
                label="SimCad">
             <command
-                  commandId="ca.usask.cs.srlab.simcad.commands.addToSimCad"
+                  commandId="ca.usask.cs.srlab.simcad.commands.addSimCad"
                   icon="icons/add.gif"
-                  id="ca.usask.cs.srlab.simcad.popups.addToSimCad"
+                  id="ca.usask.cs.srlab.simcad.popups.addSimCad"
                   style="push">
                <visibleWhen
                      checkEnabled="false">
@@ -175,9 +175,9 @@
                </visibleWhen>
             </command>
             <command
-                  commandId="ca.usask.cs.srlab.simcad.commands.removeFromSimCad"
+                  commandId="ca.usask.cs.srlab.simcad.commands.removeSimCad"
                   icon="icons/delete.gif"
-                  id="ca.usask.cs.srlab.simcad.popups.removeFromSimCad"
+                  id="ca.usask.cs.srlab.simcad.popups.removeSimCad"
                   style="push">
                <visibleWhen
                      checkEnabled="false">
@@ -288,8 +288,8 @@
             commandId="ca.usask.cs.srlab.simcad.commands.openSimCadProjectsView">
       </handler>
       <handler
-            class="ca.usask.cs.srlab.simcad.ui.handler.AddToSimCadHandler"
-            commandId="ca.usask.cs.srlab.simcad.commands.addToSimCad">
+            class="ca.usask.cs.srlab.simcad.ui.handler.AddSimCadHandler"
+            commandId="ca.usask.cs.srlab.simcad.commands.addSimCad">
          <enabledWhen>
             <count
                   value="1">
@@ -297,8 +297,8 @@
          </enabledWhen>
       </handler>
       <handler
-            class="ca.usask.cs.srlab.simcad.ui.handler.RemoveFromSimCadHandler"
-            commandId="ca.usask.cs.srlab.simcad.commands.removeFromSimCad">
+            class="ca.usask.cs.srlab.simcad.ui.handler.RemoveSimCadHandler"
+            commandId="ca.usask.cs.srlab.simcad.commands.removeSimCad">
          <enabledWhen>
             <count
                   value="1">
