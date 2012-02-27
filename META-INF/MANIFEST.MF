@@ -1,9 +1,9 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Simcad
-Bundle-SymbolicName: ca.usask.cs.srlab.simcad;singleton:=true
+Bundle-Name: SimClipse-1.0
+Bundle-SymbolicName: ca.usask.cs.srlab.simClipse;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Bundle-Activator: ca.usask.cs.srlab.simcad.SimCadActivator
+Bundle-Activator: ca.usask.cs.srlab.simclipse.SimClipsePlugin
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.ui.ide;bundle-version="3.6.2",
@@ -13,4 +13,13 @@ Require-Bundle: org.eclipse.ui,
  org.apache.commons.logging;bundle-version="1.0.4"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Bundle-ClassPath: .
+Bundle-ClassPath: .,
+ lib/simCad2.jar,
+ lib/guava-10.0.1.jar,
+ lib/commons-collections-3.2.1.jar,
+ lib/ejb3-persistence.jar
+Import-Package: com.ibm.icu.text,
+ org.eclipse.core.filebuffers,
+ org.eclipse.jface.text,
+ org.eclipse.jface.text.source,
+ org.eclipse.ui.texteditor
