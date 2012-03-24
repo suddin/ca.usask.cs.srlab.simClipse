@@ -2,6 +2,10 @@ package ca.usask.cs.srlab.simclipse.ui.view.project;
 
 import java.util.Comparator;
 
+import org.eclipse.jface.action.IMenuListener;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.ColumnPixelData;
 import org.eclipse.jface.viewers.ColumnWeightData;
@@ -11,9 +15,11 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.ISelectionListener;
+import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.part.ViewPart;
 
@@ -31,7 +37,7 @@ public class ProjectView extends ViewPart {
 	private ISelectionListener pageSelectionListener;
 
 	public static final String ID =
-        "ca.usask.cs.srlab.simclipse.ui.views.ProjectsView";
+        "ca.usask.cs.srlab.simclipse.ui.view.ProjectsView";
 	
 	public ProjectView() {
 		// TODO Auto-generated constructor stub
@@ -65,6 +71,8 @@ public class ProjectView extends ViewPart {
 		viewer.setLabelProvider(new ProjectViewLabelProvider()); 
 		viewer.setInput(ProjectViewManager.getManager());
 		
+		createContextMenu();
+		
 		getSite().setSelectionProvider(viewer);
 		
 		createTableSorter();
@@ -73,6 +81,27 @@ public class ProjectView extends ViewPart {
 		
 	}
 
+	
+	private void createContextMenu() {
+		MenuManager menuMgr = new MenuManager("#PopupMenu", "ca.usask.cs.simclipse.projectView.contextMenu");
+		menuMgr.setRemoveAllWhenShown(true);
+		menuMgr.addMenuListener(new IMenuListener() {
+			public void menuAboutToShow(IMenuManager m) {
+				ProjectView.this.fillContextMenu(m);
+			}
+		});
+		Menu menu = menuMgr.createContextMenu(viewer.getControl());
+		viewer.getControl().setMenu(menu);
+		getSite().registerContextMenu(menuMgr, viewer);
+	}
+
+	private void fillContextMenu(IMenuManager menuMgr) {
+		menuMgr.add(new Separator("edit"));
+		// menuMgr.add(removeContributionItem);
+		menuMgr.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
+	}
+	
+	
 	@SuppressWarnings("unchecked")
 	private void createTableSorter() {
 		Comparator<IProjectViewItem> nameComparator = new Comparator<IProjectViewItem>() {

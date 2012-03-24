@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?eclipse version="3.4"?>
+<?eclipse version="3.0"?>
 <plugin>
-   <extension
+   <!--extension
          point="org.eclipse.ui.preferencePages">
       <page
             class="ca.usask.cs.srlab.simclipse.ui.preferences.SimClipsePreferencePage"
             id="ca.usask.cs.srlab.simclipse.preferences.SimClipsePreferencePage"
-            name="SimClipse">
+            name="%preferencepage.name">
       </page>
    </extension>
    <extension
@@ -14,83 +14,91 @@
       <initializer
             class="ca.usask.cs.srlab.simclipse.ui.preferences.PreferenceInitializer">
       </initializer>
-   </extension>
+   </extension-->
    <extension
          point="org.eclipse.ui.views">
       <category
             id="ca.usask.cs.srlab.simclipse.view.category.clonedetection"
-            name="SimClipse">
+            name="%category.view.name">
       </category>
       <view
             category="ca.usask.cs.srlab.simclipse.view.category.clonedetection"
             class="ca.usask.cs.srlab.simclipse.ui.view.project.ProjectView"
             icon="icons/projects.gif"
-            id="ca.usask.cs.srlab.simclipse.ui.views.ProjectsView"
-            name="SimClipse Projects"
+            id="ca.usask.cs.srlab.simclipse.ui.view.ProjectsView"
+            name="%view.name.projects"
             restorable="true">
       </view>
       <view
             category="ca.usask.cs.srlab.simclipse.view.category.clonedetection"
             class="ca.usask.cs.srlab.simclipse.ui.view.clone.CloneView"
             icon="icons/cloneview.png"
-            id="ca.usask.cs.srlab.simclipse.ui.views.ClonesView"
-            name="SimClipse Clones"
+            id="ca.usask.cs.srlab.simclipse.ui.view.ClonesView"
+            name="%view.name.clones"
+            restorable="true">
+      </view>
+      <view
+            category="ca.usask.cs.srlab.simclipse.view.category.clonedetection"
+            class="ca.usask.cs.srlab.simclipse.ui.view.navigator.SimEclipseNavigator"
+            icon="icons/Hierarchy16.gif"
+            id="ca.usask.cs.srlab.simclipse.ui.view.navigatorView"
+            name="%view.name.navigator"
             restorable="true">
       </view>
    </extension>
    <extension
          point="org.eclipse.ui.commands">
       <category
-            description="Commands related to SimClipse Projects View"
+            description="%category.commands.projectView.description"
             id="ca.usask.cs.srlab.simclipse.commands.category.projectView"
-            name="SimClipse">
+            name="%category.commands.projectView.name">
       </category>
       <category
-            description="Commands related to SimClipse Clone Detection"
+            description="%category.commands.cloneDetection.description"
             id="ca.usask.cs.srlab.simclipse.commands.category.processClone"
-            name="Clones">
+            name="%category.commands.cloneDetection.name">
       </category>
       <command
             categoryId="ca.usask.cs.srlab.simclipse.commands.category.projectView"
-            description="Open SimClipse Projects View if not already visible"
+            description="%command.openProjectView.description"
             id="ca.usask.cs.srlab.simclipse.commands.openSimClipseProjectsView"
-            name="Open SimClipse Projects View">
+            name="%command.openProjectView.name">
       </command>
       <command
             categoryId="ca.usask.cs.srlab.simclipse.commands.category.projectView"
-            description="Add SimClipse to project"
-            id="ca.usask.cs.srlab.simclipse.commands.addSimClipse"
-            name="Add to Project">
+            description="%command.enable.description"
+            id="ca.usask.cs.srlab.simclipse.commands.enableSimClipse"
+            name="%command.enable.name">
       </command>
       <command
             categoryId="ca.usask.cs.srlab.simclipse.commands.category.projectView"
-            description="Remove SimClipse from project"
-            id="ca.usask.cs.srlab.simclipse.commands.removeSimClipse"
-            name="Remove from Project">
+            description="%command.disable.description"
+            id="ca.usask.cs.srlab.simclipse.commands.disableSimClipse"
+            name="%command.disable.name">
       </command>
       <command
             categoryId="ca.usask.cs.srlab.simclipse.commands.category.processClone"
-            description="Update Clone Index"
+            description="%command.updateCloneIndex.description"
             id="ca.usask.cs.srlab.simclipse.commands.updateCloneIndex"
-            name="Update Clone Index">
+            name="%command.updateCloneIndex.name">
       </command>
       <command
             categoryId="ca.usask.cs.srlab.simclipse.commands.category.processClone"
-            description="Detect Clone in Project"
+            description="%command.detectClone.description"
             id="ca.usask.cs.srlab.simclipse.commands.detectClone"
-            name="Detect Clones in Project">
+            name="%command.detectClone.name">
       </command>
       <command
             categoryId="ca.usask.cs.srlab.simclipse.commands.category.processClone"
-            description="View Clones in Project"
+            description="%command.viewClone.description"
             id="ca.usask.cs.srlab.simclipse.commands.viewClone"
-            name="View Clones in Project">
+            name="%command.viewClone.name">
       </command>
       <command
             categoryId="ca.usask.cs.srlab.simclipse.commands.category.processClone"
-            description="Update SimClipse Settings"
+            description="%command.updateSettings.description"
             id="ca.usask.cs.srlab.simclipse.commands.changeSimClipseSettings"
-            name="Update Settings">
+            name="%command.updateSettings.name">
       </command>
    </extension>
    <extension
@@ -154,13 +162,16 @@
       <menuContribution
             allPopups="false"
             locationURI="popup:org.eclipse.ui.popup.any?after=additions">
+            <!--popup:org.eclipse.ui.popup.any "-->
+            <!--popup:org.eclipse.jdt.ui.PackageExplorer "-->
+            <!--popup:org.eclipse.ui.navigator.ProjectExplorer"-->
          <menu
                id="ca.usask.cs.srlab.simclipse.popups.simclipseMenu"
-               label="SimClipse">
+               label="%menu.popup.root.label">
             <command
-                  commandId="ca.usask.cs.srlab.simclipse.commands.addSimClipse"
-                  icon="icons/add.gif"
-                  id="ca.usask.cs.srlab.simclipse.popups.addSimClipse"
+                  commandId="ca.usask.cs.srlab.simclipse.commands.enableSimClipse"
+                  icon="icons/enable.png"
+                  id="ca.usask.cs.srlab.simclipse.popups.enableSimClipse"
                   style="push">
                <visibleWhen
                      checkEnabled="false">
@@ -170,10 +181,16 @@
                            ifEmpty="false"
                            operator="or">
                         <and>
-                           <instanceof
-                                 value="org.eclipse.core.resources.IProject">
-                           </instanceof>
+                        	<or>
+	                           	<instanceof 
+	                           		value="org.eclipse.core.resources.IProject">
+	                           	</instanceof>
+	                           <instanceof
+	                                value="org.eclipse.jdt.core.IJavaProject">
+	                           </instanceof>
+                           	</or>
                            <test
+                                 forcePluginActivation="true"
                                  property="ca.usask.cs.srlab.simclipse.notSimClipseItem">
                            </test>
                         </and>
@@ -182,9 +199,9 @@
                </visibleWhen>
             </command>
             <command
-                  commandId="ca.usask.cs.srlab.simclipse.commands.removeSimClipse"
-                  icon="icons/delete.gif"
-                  id="ca.usask.cs.srlab.simclipse.popups.removeSimClipse"
+                  commandId="ca.usask.cs.srlab.simclipse.commands.disableSimClipse"
+                  icon="icons/disable.png"
+                  id="ca.usask.cs.srlab.simclipse.popups.disableSimClipse"
                   style="push">
                <visibleWhen
                      checkEnabled="false">
@@ -194,9 +211,14 @@
                            ifEmpty="false"
                            operator="or">
                         <and>
+                           <or>
+                           	<instanceof 
+                           		value="org.eclipse.core.resources.IProject">
+                           	</instanceof>
                            <instanceof
-                                 value="org.eclipse.core.resources.IProject">
+                                value="org.eclipse.jdt.core.IJavaProject">
                            </instanceof>
+                           	</or>
                            <test
                                  property="ca.usask.cs.srlab.simclipse.isSimClipseItem">
                            </test>
@@ -218,9 +240,14 @@
                            ifEmpty="false"
                            operator="or">
                         <and>
+                           <or>
+                           	<instanceof 
+                           		value="org.eclipse.core.resources.IProject">
+                           	</instanceof>
                            <instanceof
-                                 value="org.eclipse.core.resources.IProject">
+                                value="org.eclipse.jdt.core.IJavaProject">
                            </instanceof>
+                           	</or>
                            <test
                                  property="ca.usask.cs.srlab.simclipse.isSimClipseItem">
                            </test>
@@ -232,19 +259,22 @@
             <menu
                   icon="icons/clones.png"
                   id="ca.usask.cs.srlab.simclipse.popups.simclipseMenu.clonesMenu"
-                  label="Clones">
+                  label="%menu.popup.clones.label">
                <command
                      commandId="ca.usask.cs.srlab.simclipse.commands.updateCloneIndex"
+                     icon="icons/update_clone_index.png"
                      id="ca.usask.cs.srlab.simclipse.popups.updateCloneIndex"
                      style="push">
                </command>
                <command
                      commandId="ca.usask.cs.srlab.simclipse.commands.detectClone"
+                     icon="icons/detect_clone.png"
                      id="ca.usask.cs.srlab.simclipse.popups.detectClone"
                      style="push">
                </command>
                <command
                      commandId="ca.usask.cs.srlab.simclipse.commands.viewClone"
+                     icon="icons/view_clone.png"
                      id="ca.usask.cs.srlab.simclipse.popups.viewClone"
                      style="push">
                </command>
@@ -256,9 +286,14 @@
                            ifEmpty="false"
                            operator="or">
                         <and>
+                           <or>
+                           	<instanceof 
+                           		value="org.eclipse.core.resources.IProject">
+                           	</instanceof>
                            <instanceof
-                                 value="org.eclipse.core.resources.IProject">
+                                value="org.eclipse.jdt.core.IJavaProject">
                            </instanceof>
+                           	</or>
                            <test
                                  property="ca.usask.cs.srlab.simclipse.isSimClipseItem">
                            </test>
@@ -267,19 +302,50 @@
                   </with>
                </visibleWhen>
             </menu>
+            <visibleWhen
+                  checkEnabled="false">
+               <with
+                     variable="activePartId">
+                  <or>
+                     <equals
+                           value="org.eclipse.ui.navigator.ProjectExplorer"/>
+                     <equals
+                           value="org.eclipse.jdt.ui.PackageExplorer"/>
+                  </or>
+               </with>
+            </visibleWhen>
          </menu>
       </menuContribution>
+      <!--menuContribution
+            allPopups="false"
+            locationURI="popup:ca.usask.cs.srlab.simclipse.ui.view.project.ProjectView?before=edit">
+         <command
+               commandId="ca.usask.cs.srlab.simclipse.commands.updateCloneIndex"
+               label="%command.updateCloneIndex.name"
+               style="push">
+         </command>
+         <command
+               commandId="ca.usask.cs.srlab.simclipse.commands.detectClone"
+               label="%command.detectClone.name"
+               style="push">
+         </command>
+         <command
+               commandId="ca.usask.cs.srlab.simclipse.commands.viewClone"
+               label="%command.viewClone.name"
+               style="push">
+         </command>
+      </menuContribution-->
    </extension>
    <extension
          point="org.eclipse.ui.actionSets">
       <actionSet
             id="ca.usask.cs.srlab.simclipse.workbenchActionSet"
-            label="SimClipse ActionSet"
+            label="%actionSet.label"
             visible="true">
+            <!-- <menu icon="icons/simclipse2.gif"-->
          <menu
-               icon="icons/simclipse2.gif"
                id="ca.usask.cs.srlab.simclipse.workbenchMenu"
-               label="SimClipse"
+               label="%menu.actionSet.root.label"
                path="additions">
             <groupMarker
                   name="content">
@@ -292,7 +358,7 @@
                class="ca.usask.cs.srlab.simclipse.actions.OpenSimClipseProjectsViewActionDelegate"
                icon="icons/projects.gif"
                id="ca.usask.cs.srlab.simclipse.actions.openSimclipseProjectsView"
-               label="Open Simclipse Projects View"
+               label="%action.openProjectsView.label"
                menubarPath="ca.usask.cs.srlab.simclipse.workbenchMenu/content"
                style="push"
                toolbarPath="Normal/additions">
@@ -303,7 +369,7 @@
          point="org.eclipse.core.expressions.propertyTesters">
       <propertyTester
             class="ca.usask.cs.srlab.simclipse.ui.view.project.ProjectViewItemTester"
-            id="ca.usask.cs.srlab.simclipse.propertyTesters.isSimClipseItem"
+            id="ca.usask.cs.srlab.simclipse.propertyTester"
             namespace="ca.usask.cs.srlab.simclipse"
             properties="isSimClipseItem, notSimClipseItem"
             type="java.lang.Object">
@@ -316,8 +382,8 @@
             commandId="ca.usask.cs.srlab.simclipse.commands.openSimClipseProjectsView">
       </handler>
       <handler
-            class="ca.usask.cs.srlab.simclipse.ui.handler.AddSimClipseHandler"
-            commandId="ca.usask.cs.srlab.simclipse.commands.addSimClipse">
+            class="ca.usask.cs.srlab.simclipse.ui.handler.EnableSimClipseHandler"
+            commandId="ca.usask.cs.srlab.simclipse.commands.enableSimClipse">
          <enabledWhen>
             <count
                   value="1">
@@ -325,8 +391,8 @@
          </enabledWhen>
       </handler>
       <handler
-            class="ca.usask.cs.srlab.simclipse.ui.handler.RemoveSimClipseHandler"
-            commandId="ca.usask.cs.srlab.simclipse.commands.removeSimClipse">
+            class="ca.usask.cs.srlab.simclipse.ui.handler.DisableSimClipseHandler"
+            commandId="ca.usask.cs.srlab.simclipse.commands.disableSimClipse">
          <enabledWhen>
             <count
                   value="1">
@@ -370,23 +436,15 @@
          </enabledWhen>
       </handler>
    </extension>
-   <!--extension
+   <extension
          point="org.eclipse.ui.popupMenus">
-      <objectContribution
+      <!--objectContribution
             adaptable="true"
             id="ca.usask.cs.srlab.simclipse.popupMenu"
             objectClass="org.eclipse.core.resources.IProject">
-         <action
-               class="ca.usask.cs.srlab.simclipse.actions.AddSimclipseActionDelegate"
-               enablesFor="1"
-               icon="icons/add.gif"
-               id="ca.usask.cs.srlab.simclipse.actions.addSimclipse"
-               label="Add"
-               menubarPath="ca.usask.cs.srlab.simclipse.popupSubMenu/content">
-         </action>
          <menu
                id="ca.usask.cs.srlab.simclipse.popupSubMenu"
-               label="SimClipse"
+               label="SimClipse (Object Contrib)"
                path="additions">
             <groupMarker
                   name="contents">
@@ -395,7 +453,267 @@
                   name="additions">
             </separator>
          </menu>
-      </objectContribution>
-   </extension-->
+         <action
+               class="ca.usask.cs.srlab.simclipse.actions.EnableSimclipseActionDelegate"
+               enablesFor="1"
+               icon="icons/enable.png"
+               id="ca.usask.cs.srlab.simclipse.actions.enableSimclipse"
+               label="Enable SimCad"
+               menubarPath="ca.usask.cs.srlab.simclipse.popupSubMenu/content">
+         </action>
+      </objectContribution-->
+      <viewerContribution
+            id="ca.usask.cs.srlab.simClipse.projectView.viewerContribution.popumMenu"
+            targetID="ca.usask.cs.srlab.simclipse.ui.view.ProjectsView">
+         <!--menu
+               id="ca.usask.cs.srlab.simClipse.projectsView.viewerContribution.popupMenu.menu1"
+               label="%menu.projectsView.root.label"
+               path="additions">
+            <groupMarker
+                  name="content">
+            </groupMarker>
+            <separator
+                  name="additions">
+            </separator>
+         </menu-->
+         <action
+               class="ca.usask.cs.srlab.simclipse.actions.UpdateCloneIndexActionDeligate"
+               icon="icons/update_clone_index.png"
+               id="ca.usask.cs.srlab.simClipse.projectsView.viewerContribution.popupMenu.action11"
+               label="%action.projectsView.updateCloneIndex.label"
+               menubarPath="additions">
+            <enablement>
+                  <objectClass
+                        name="ca.usask.cs.srlab.simclipse.ui.view.project.ProjectViewItem">
+                  </objectClass>
+            </enablement>
+         </action>
+         <action
+               class="ca.usask.cs.srlab.simclipse.actions.DetectCloneActionDelegate"
+               icon="icons/detect_clone.png"
+               id="ca.usask.cs.srlab.simClipse.projectsView.viewerContribution.popupMenu.action12"
+               label="%action.projectsView.detectClone.label"
+               menubarPath="additions">
+            <enablement>
+               <objectClass
+                     name="ca.usask.cs.srlab.simclipse.ui.view.project.ProjectViewItem">
+               </objectClass>
+            </enablement>
+         </action>
+         <action
+               class="ca.usask.cs.srlab.simclipse.actions.ViewCloneActionDelegate"
+               icon="icons/view_clone.png"
+               id="ca.usask.cs.srlab.simClipse.projectsView.viewerContribution.popupMenu.action13"
+               label="%action.projectsView.viewClone.label"
+               menubarPath="additions">
+            <enablement>
+               <objectClass
+                     name="ca.usask.cs.srlab.simclipse.ui.view.project.ProjectViewItem">
+               </objectClass>
+            </enablement>
+         </action>
+         <action
+               class="ca.usask.cs.srlab.simclipse.actions.OpenDetectionSettingsActionDelegate"
+               icon="icons/settings.png"
+               id="ca.usask.cs.srlab.simClipse.projectsView.viewerContribution.popupMenu.action14"
+               label="%action.projectsView.changeSettings.label"
+               menubarPath="additions">
+            <enablement>
+               <objectClass
+                     name="ca.usask.cs.srlab.simclipse.ui.view.project.ProjectViewItem">
+               </objectClass>
+            </enablement>
+         </action>
+      </viewerContribution>
+      
+      <!-- navigator view popup -->
+      <viewerContribution
+            id="ca.usask.cs.srlab.simClipse.navigatorView.viewerContribution.popumMenu"
+            targetID="ca.usask.cs.srlab.simclipse.ui.view.navigatorView">
+         <action
+               class="ca.usask.cs.srlab.simclipse.actions.UpdateCloneIndexActionDeligate"
+               icon="icons/update_clone_index.png"
+               id="ca.usask.cs.srlab.simClipse.navigatorView.viewerContribution.popupMenu.action11"
+               label="%action.projectsView.updateCloneIndex.label"
+               menubarPath="additions">
+            <enablement>
+                  <objectClass
+                        name="org.eclipse.core.resources.IResource">
+                  </objectClass>
+            </enablement>
+         </action>
+         <action
+               class="ca.usask.cs.srlab.simclipse.actions.DetectCloneActionDelegate"
+               icon="icons/detect_clone.png"
+               id="ca.usask.cs.srlab.simClipse.navigatorView.viewerContribution.popupMenu.action12"
+               label="%action.projectsView.detectClone.label"
+               menubarPath="additions">
+            <enablement>
+               <objectClass
+                     name="org.eclipse.core.resources.IResource">
+               </objectClass>
+            </enablement>
+         </action>
+         <action
+               class="ca.usask.cs.srlab.simclipse.actions.ViewCloneActionDelegate"
+               icon="icons/view_clone.png"
+               id="ca.usask.cs.srlab.simClipse.navigatorView.viewerContribution.popupMenu.action13"
+               label="%action.projectsView.viewClone.label"
+               menubarPath="additions">
+            <enablement>
+               <objectClass
+                     name="org.eclipse.core.resources.IResource">
+               </objectClass>
+            </enablement>
+         </action>
+         <action
+               class="ca.usask.cs.srlab.simclipse.actions.OpenDetectionSettingsActionDelegate"
+               icon="icons/settings.png"
+               id="ca.usask.cs.srlab.simClipse.navigatorView.viewerContribution.popupMenu.action14"
+               label="%action.projectsView.changeSettings.label"
+               menubarPath="additions">
+            <enablement>
+               <objectClass
+                     name="org.eclipse.core.resources.IResource">
+               </objectClass>
+            </enablement>
+         </action>
+      </viewerContribution>
+      
+      <!-- members view popup -->
+      <!--viewerContribution
+            id="ca.usask.cs.srlab.simClipse.javaMembersView.viewerContribution.popupMenu"
+            targetID="org.eclipse.jdt.ui.MembersView">
+         <menu
+               id="ca.usask.cs.srlab.simClipse.javaMembersView.viewerContribution.popupMenu.menu1"
+               label="%menu.membersView.root.label"
+               path="additions">
+            <groupMarker
+                  name="content">
+            </groupMarker>
+            <separator
+                  name="additions">
+            </separator>
+         </menu>
+         <action
+               class="ca.usask.cs.srlab.simclipse.Action3"
+               id="ca.usask.cs.srlab.simClipse.javaMembersView.viewerContribution.popupMenu.action11"
+               label="%action.membersView.viewClone.label"
+               menubarPath="ca.usask.cs.srlab.simClipse.javaMembersView.viewerContribution.popupMenu.menu1/content">
+         </action>
+         <action
+               class="ca.usask.cs.srlab.simclipse.actions.DetectCloneActionDeligate"
+               id="ca.usask.cs.srlab.simClipse.javaMembersView.viewerContribution.popupMenu.action12"
+               label="%action.membersView.detectClone.label"
+               menubarPath="ca.usask.cs.srlab.simClipse.javaMembersView.viewerContribution.popupMenu.menu1/content">
+         </action>
+      </viewerContribution-->
+   </extension>
+   <extension
+         id="id1"
+         point="org.eclipse.core.resources.natures">
+      <runtime>
+         <run
+               class="ca.usask.cs.srlab.simclipse.SimEclipseProjectNature">
+         </run>
+      </runtime>
+   </extension>
+   
+   <extension
+         point="org.eclipse.ui.navigator.viewer">
+         <viewer
+               viewerId="ca.usask.cs.srlab.simclipse.ui.view.navigatorView">
+               <popupMenu allowsPlatformContributions="true">
+               <insertionPoint
+                    name="group.edit" />
+
+                <insertionPoint
+                    name="group.reorganize" />
+               </popupMenu>
+         </viewer>
+      <viewerContentBinding
+            viewerId="ca.usask.cs.srlab.simclipse.ui.view.navigatorView">
+         <includes>
+            <contentExtension
+                  isRoot="false"
+                  pattern="ca.usask.cs.srlab.simclipse.navigatorContent">
+            </contentExtension>
+         </includes>
+      </viewerContentBinding>
+      <!--viewerActionBinding
+            viewerId="ca.usask.cs.srlab.simclipse.ui.view.navigatorView">
+         <includes>
+            <actionExtension
+                  pattern="org.eclipse.ui.navigator.resources.*">
+            </actionExtension>
+         </includes>
+      </viewerActionBinding-->
+      
+   </extension>
+      
+   <extension
+         point="org.eclipse.ui.navigator.navigatorContent">
+      <navigatorContent
+            activeByDefault="true"
+            contentProvider="ca.usask.cs.srlab.simclipse.ui.view.navigator.NavigatorViewContentProvider"
+            id="ca.usask.cs.srlab.simclipse.navigatorContent"
+            labelProvider="ca.usask.cs.srlab.simclipse.ui.view.navigator.CNFLabelProvider"
+            name="SimEclipse Projects">
+         <triggerPoints>
+            <or>
+            	<instanceof
+                     value="ca.usask.cs.srlab.simclipse.ui.view.navigator.NavigatorManager">
+               </instanceof>
+               <instanceof
+                     value="ca.usask.cs.srlab.simclipse.ui.view.navigator.Root">
+               </instanceof>
+               <instanceof
+                     value="org.eclipse.core.resources.IProject">
+               </instanceof>
+               <instanceof
+                     value="org.eclipse.core.resources.IFolder">
+               </instanceof>
+               <instanceof
+                     value="org.eclipse.core.resources.IResource">
+               </instanceof>
+            </or>
+         </triggerPoints>
+         <possibleChildren>
+            <or>
+            <instanceof
+                     value="org.eclipse.core.resources.IResource">
+               </instanceof>
+               <instanceof
+                     value="org.eclipse.core.resources.IProject">
+               </instanceof>
+               <instanceof
+                     value="org.eclipse.core.resources.IFolder">
+               </instanceof>
+               <instanceof
+                     value="org.eclipse.core.resources.IFile">
+               </instanceof>
+            </or>
+         </possibleChildren>
+      </navigatorContent>
+   </extension>
+   <!--extension point="org.eclipse.ui.popupMenus"> 
+      
+      <viewerContribution 
+         id="com.xyz.C2" 
+         targetID="ca.usask.cs.srlab.simclipse.ui.view.navigatorView"> 
+         <action
+               class="ca.usask.cs.srlab.simclipse.actions.DetectCloneActionDeligateForNavigator"
+               icon="icons/detect_clone.png"
+               id="xca.usask.cs.srlab.simclipse.actions.enableSimclipse"
+               label="Detect Clone"
+               menubarPath="additions"
+               state="true"
+               style="toggle">
+            <selection
+                  class="org.eclipse.core.resources.IResource">
+            </selection>
+         </action> 
+      </viewerContribution> 
+   </extension--> 
 
 </plugin>

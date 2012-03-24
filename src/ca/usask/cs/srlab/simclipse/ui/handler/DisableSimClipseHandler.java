@@ -8,16 +8,18 @@ import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.handlers.HandlerUtil;
 
+import ca.usask.cs.srlab.simclipse.ui.view.project.ProjectViewItem;
 import ca.usask.cs.srlab.simclipse.ui.view.project.ProjectViewManager;
 
 
-public class RemoveSimClipseHandler extends AbstractHandler
+public class DisableSimClipseHandler extends AbstractHandler
 {
    public Object execute(ExecutionEvent event)
          throws ExecutionException {
@@ -34,16 +36,25 @@ public class RemoveSimClipseHandler extends AbstractHandler
 			while (iter.hasNext()) {
 				Object elem = iter.next();
 
-				if (!(elem instanceof IProject) && !(elem instanceof IFolder))
+				if (!(elem instanceof IJavaProject || elem instanceof ProjectViewItem || elem instanceof IProject || elem instanceof IFolder))
 					return null;
 
 				IProject project = null;
-
+				
 				if (elem instanceof IFolder) {
 					// find the main project
-					IFolder folder = (IFolder) ((IAdaptable) elem)
-							.getAdapter(IFolder.class);
+					IFolder folder = (IFolder) ((IAdaptable) elem).getAdapter(IFolder.class);
 					project = folder.getProject();
+				}
+
+				if (elem instanceof ProjectViewItem) {
+					// find the main project
+					elem = ((ProjectViewItem)elem).getResource().getProject();
+				} 
+				
+				if (elem instanceof IJavaProject) {
+					// find the main project
+					elem = ((IJavaProject)elem).getProject();
 				}
 
 				project = (IProject) ((IAdaptable) elem)
@@ -57,12 +68,12 @@ public class RemoveSimClipseHandler extends AbstractHandler
 				
 				Shell shell = (Shell) project.getAdapter(Shell.class);
 				
-				sureRemoveSimClipse = MessageDialog.openQuestion(shell, "Remove SimClipse",
-		                  "Are you sure you want to remove SimClipse?");
+				sureRemoveSimClipse = MessageDialog.openQuestion(shell, "Remove SimEclipse",
+		                  "Are you sure you want to disable SimEclipse?");
 				
 				if(sureRemoveSimClipse){
-					keepSimclipseData = MessageDialog.openQuestion(shell, "Keep SimClipse Data",
-	                  "Do you want to keep SimClipse settings and data?");
+					keepSimclipseData = MessageDialog.openQuestion(shell, "Keep SimEclipse Data",
+	                  "Do you want to keep SimEclipse settings and data?");
 					
 					ProjectViewManager.getManager()
 							.deactivateSimclipseForProject(project, keepSimclipseData);

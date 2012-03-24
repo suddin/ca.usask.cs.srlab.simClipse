@@ -12,6 +12,14 @@ import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.console.ConsolePlugin;
+import org.eclipse.ui.console.IConsole;
+import org.eclipse.ui.console.IConsoleConstants;
+import org.eclipse.ui.console.IConsoleManager;
+import org.eclipse.ui.console.IConsoleView;
+import org.eclipse.ui.console.MessageConsole;
+import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -23,28 +31,15 @@ public class SimClipsePlugin extends AbstractUIPlugin {
 	// The plug-in ID
 	public static final String PLUGIN_ID = "ca.usask.cs.srlab.simClipse"; //$NON-NLS-1$
 
-	/**
-	 * Search annotation type (value <code>"org.eclipse.search.results"</code>).
-	 */
-	public static final String SEARCH_ANNOTATION_TYPE= PLUGIN_ID + ".results"; //$NON-NLS-1$
+	public static final String CONSOLE_ID = PLUGIN_ID + ".console"; //$NON-NLS-1$
 
-	/**
-	 * Filtered search annotation type (value <code>"org.eclipse.search.filteredResults"</code>).
-	 */
-	public static final String FILTERED_SEARCH_ANNOTATION_TYPE= PLUGIN_ID + ".filteredResults"; //$NON-NLS-1$
-
-	public static final String SEARCH_MARKER=  PLUGIN_ID + ".searchmarker"; //$NON-NLS-1$
-	public static final String FILTERED_SEARCH_MARKER=  PLUGIN_ID + ".filteredsearchmarker"; //$NON-NLS-1$
-
-	/**
-	 * Id of the new Search view
-	 * (value <code>"org.eclipse.search.ui.views.SearchView"</code>).
-	 */
 	public static final String SEARCH_VIEW_ID= PLUGIN_ID + ".searchView"; //$NON-NLS-1$
 
 	
 	// The shared instance
 	private static SimClipsePlugin plugin;
+	
+	private MessageConsoleStream consoleOut;
 	
 	/**
 	 * The constructor
@@ -59,6 +54,11 @@ public class SimClipsePlugin extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
+		
+		MessageConsole console = findConsole(CONSOLE_ID);
+		consoleOut = console.newMessageStream();
+
+		printToConsole("Starting simcad plugin...");
 	}
 
 	/*
@@ -68,6 +68,8 @@ public class SimClipsePlugin extends AbstractUIPlugin {
 	public void stop(BundleContext context) throws Exception {
 		plugin = null;
 		super.stop(context);
+		if(consoleOut!=null)
+			consoleOut.close();
 	}
 
 	/**
@@ -187,6 +189,39 @@ public class SimClipsePlugin extends AbstractUIPlugin {
 
 	public static void log(Status status) {
 		// TODO Auto-generated method stub
-		
+		// http://wiki.eclipse.org/FAQ_How_do_I_use_the_platform_debug_tracing_facility%3F
 	}
+	
+	
+	public void printToConsole(String message){
+		consoleOut.println(message);		
+	}
+	
+	public static MessageConsole findConsole(String name) {
+		ConsolePlugin plugin = ConsolePlugin.getDefault();
+		IConsoleManager conMan = plugin.getConsoleManager();
+		IConsole[] existing = conMan.getConsoles();
+		for (int i = 0; i < existing.length; i++)
+			if (name.equals(existing[i].getName()))
+				return (MessageConsole) existing[i];
+		// no console found, so create a new one
+		MessageConsole myConsole = new MessageConsole(name, null);
+		conMan.addConsoles(new IConsole[] { myConsole });
+		return myConsole;
+	}
+
+	public static void displayConsole(IConsole myConsole) throws PartInitException {
+		IWorkbenchPage page = getActivePage();
+		String id = IConsoleConstants.ID_CONSOLE_VIEW;
+		IConsoleView view = (IConsoleView) page.showView(id);
+		view.display(myConsole);
+	}
+
+	public void printToConsole(String message, Exception e) {
+		printToConsole(message);
+		for(StackTraceElement element : e.getStackTrace()){
+			printToConsole(element.toString());
+		}
+	}
+	
 }

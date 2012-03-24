@@ -8,7 +8,7 @@ import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Shell;
@@ -19,6 +19,7 @@ import org.eclipse.ui.handlers.HandlerUtil;
 import ca.usask.cs.srlab.simclipse.SimClipseLog;
 import ca.usask.cs.srlab.simclipse.SimClipsePlugin;
 import ca.usask.cs.srlab.simclipse.ui.DetectionSettingsDialog;
+import ca.usask.cs.srlab.simclipse.ui.view.project.ProjectViewItem;
 
 public class SimClipseSettingsHandler extends AbstractHandler {
 
@@ -52,7 +53,7 @@ public class SimClipseSettingsHandler extends AbstractHandler {
 				return null;
 			Object elem = iter.next();
 
-			if (!(elem instanceof IProject) && !(elem instanceof IFolder))
+			if (!(elem instanceof IJavaProject || elem instanceof ProjectViewItem || elem instanceof IProject || elem instanceof IFolder))
 				return null;
 
 			IProject project = null;
@@ -61,6 +62,16 @@ public class SimClipseSettingsHandler extends AbstractHandler {
 				// find the main project
 				IFolder folder = (IFolder) ((IAdaptable) elem).getAdapter(IFolder.class);
 				project = folder.getProject();
+			}
+
+			if (elem instanceof ProjectViewItem) {
+				// find the main project
+				elem = ((ProjectViewItem)elem).getResource().getProject();
+			} 
+			
+			if (elem instanceof IJavaProject) {
+				// find the main project
+				elem = ((IJavaProject)elem).getProject();
 			}
 
 			project = (IProject) ((IAdaptable) elem).getAdapter(IProject.class);

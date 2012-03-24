@@ -1,9 +1,16 @@
 package ca.usask.cs.srlab.simclipse.command;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -24,21 +31,32 @@ import ca.usask.cs.srlab.simcad.index.IndexFactory;
 import ca.usask.cs.srlab.simcad.listener.ICloneDetectionListener;
 import ca.usask.cs.srlab.simcad.model.CloneFragment;
 import ca.usask.cs.srlab.simcad.model.CloneSet;
+import ca.usask.cs.srlab.simcad.util.PropsUtil;
 import ca.usask.cs.srlab.simclipse.SimClipseConstants;
+import ca.usask.cs.srlab.simclipse.SimClipseException;
+import ca.usask.cs.srlab.simclipse.SimClipsePlugin;
+import ca.usask.cs.srlab.simclipse.actions.CloneIndexManager;
+import ca.usask.cs.srlab.simclipse.util.FileUtil;
 
 public class DetectCloneOperation extends WorkspaceModifyOperation implements ICloneDetectionListener{
 	
-	private List<IResource> iResources;
+	private List<IProject> scopeForCloneDetection;
+	private List<IResource> candidateForCloneDetection;
 	private CloneDetector cloneDetector;
 	private DetectionSettings detectionSettings;
 	private List<CloneSet> detectionResult;
 	private IProgressMonitor monitor;
 	
-	public DetectCloneOperation(final List<IResource> projectForCloneDetection, DetectionSettings detectionSettings) {
-		this.iResources = projectForCloneDetection;
+	public DetectCloneOperation(final List<IResource> candidateForCloneDetection, final List<IProject> scopeForCloneDetection, DetectionSettings detectionSettings) {
+		this.candidateForCloneDetection = candidateForCloneDetection;
+		this.scopeForCloneDetection = scopeForCloneDetection;
 		this.detectionSettings = detectionSettings;
 	}
 
+	public DetectCloneOperation(final List<IProject> scopeForCloneDetection, DetectionSettings detectionSettings) {
+		this(null, scopeForCloneDetection, detectionSettings);
+	}
+	
 	public List<CloneSet> getDetectionResult() {
 		return detectionResult;
 	}
@@ -46,37 +64,64 @@ public class DetectCloneOperation extends WorkspaceModifyOperation implements IC
 	@Override
 	protected void execute(IProgressMonitor monitor) throws CoreException,
 			InvocationTargetException, InterruptedException {
+		
+        SimClipsePlugin.getDefault().printToConsole("Executing clone detection operation...");
+		
 		this.monitor = monitor;
 		//String source_dirs[] = SimClipseUtil.getRootFolderForResource(iResources);
-		String source_dir = iResources.get(0).getProject().getLocation().toOSString();
-		String output_dir = source_dir + System.getProperty("file.separator") + SimClipseConstants.SIMCLIPSE_DATA_FOLDER;
 		
-		//source data extraction
-		FileSystemFragmentDataProviderConfiguration dataProviderConfig = new FileSystemFragmentDataProviderConfiguration(
-				source_dir, output_dir,
-				SimClipseConstants.SIMCLIPSE_DEFAULT_LANGUAGE,
-				detectionSettings.getSourceTransformation(),
-				detectionSettings.getCloneGranularity());
-		IFragmentDataProvider cloneFragmentDataProvider = new FileSystemFragmentDataProvider(dataProviderConfig);
-		
-		//index generation
-		ICloneIndex cloneIndex = IndexFactory.LoadIndexHolder();
-		IndexBuilder indexBuilder = new IndexBuilder(cloneFragmentDataProvider);
-		indexBuilder.buildCloneIndex(cloneIndex, detectionSettings);
+		ICloneIndex cloneIndex = CloneIndexManager.getManager().getCloneIndex(scopeForCloneDetection, detectionSettings, false);
 		
 		//get a detector instance
 		cloneDetector = CloneDetector.getInstance(cloneIndex, detectionSettings, this);
 
 		Collection<CloneFragment> candidateFragments = getCandidateFragments(cloneIndex);
 		
+		//SimClipsePlugin.getDefault().printToConsole("number of fragments : " + candidateFragments.size());
+		
 		detectionResult = cloneDetector.detect(candidateFragments);
+		
+//		SimClipsePlugin.getDefault().printToConsole("Printing detection result...");
+//	      for(CloneSet cs : detectionResult){
+//	    	  SimClipsePlugin.getDefault().printToConsole( cs.toString());
+//	      }
 	}
 
 	private Collection<CloneFragment> getCandidateFragments(ICloneIndex cloneIndex) {
-		//Collection<CloneFragment> candidateFragments = new ArrayList<CloneFragment>();
+		Collection<CloneFragment> candidateFragments;// = new ArrayList<CloneFragment>();
 		//prepare input for clone detection: here the whole project is the input
-		Collection<CloneFragment> candidateFragments = cloneIndex.getAllEntries();
+		if(candidateForCloneDetection == null || candidateForCloneDetection.isEmpty())
+			candidateFragments = cloneIndex.getAllEntries();
+		else{
+			List<IFile> fileList = new ArrayList<IFile>();
+			for(IResource resource : candidateForCloneDetection){
+				if(resource instanceof IFolder)
+					fileList.addAll(FileUtil.getFilesFromFolder((IFolder)resource));
+				else
+					fileList.add((IFile) resource);
+			}
+			
+			candidateFragments = new ArrayList<CloneFragment>();
+			
+			boolean isUrlRelative = PropsUtil.getIsFragmentFileRelativeURL();
+			
+			for(IFile file :  fileList){
+				String relative = System.getProperty("file.separator")+file.getProjectRelativePath().toOSString();
+				String full = file.getLocation().toOSString();
+				Collection<CloneFragment> cloneFragments;
+				if (isUrlRelative)
+					cloneFragments = cloneIndex.getByResourceId(relative);
+				else
+					cloneFragments = cloneIndex.getByResourceId(full);
+
+				if (cloneFragments != null)
+					candidateFragments.addAll(cloneFragments);
+			}
+		}
 		
+		if(candidateFragments == null || candidateFragments.isEmpty()){
+			throw new SimClipseException("Error in identifying the candidate fragments for clone detection");
+		}
 		return candidateFragments;
 	}
 

@@ -11,7 +11,7 @@ import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPart;
 
-public class AddSimclipseActionDelegate
+public class EnableSimclipseActionDelegate
       implements IObjectActionDelegate, IViewActionDelegate, IEditorActionDelegate {
 
    /**
@@ -71,7 +71,7 @@ public class AddSimclipseActionDelegate
    public void run(IAction action) {
       MessageDialog.openInformation(
             targetPart.getSite().getShell(),
-            "Add to Favorites", 
+            "Enable SimClipse", 
             "Triggered the " + getClass().getName() + " action");
    }
 

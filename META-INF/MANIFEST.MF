@@ -1,25 +1,31 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: SimClipse-1.0
+Bundle-Name: SimEclipse
 Bundle-SymbolicName: ca.usask.cs.srlab.simClipse;singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 0.0.0.9_beta
 Bundle-Activator: ca.usask.cs.srlab.simclipse.SimClipsePlugin
+Bundle-Localization: plugin
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.ui.ide;bundle-version="3.6.2",
  org.eclipse.jdt.core;bundle-version="3.6.2",
  org.eclipse.core.resources;bundle-version="3.6.1",
  org.eclipse.core.expressions;bundle-version="3.4.200",
- org.apache.commons.logging;bundle-version="1.0.4"
+ org.apache.commons.logging;bundle-version="1.0.4",
+ org.eclipse.ui.console;bundle-version="3.5.0",
+ org.eclipse.ui.navigator;bundle-version="3.5.0",
+ org.eclipse.emf.edit.ui;bundle-version="2.6.0"
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Bundle-ClassPath: .,
- lib/simCad2.jar,
- lib/guava-10.0.1.jar,
- lib/commons-collections-3.2.1.jar,
- lib/ejb3-persistence.jar
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Bundle-ClassPath: SimCad-2.0/tools/commons-collections-3.2.1.jar,
+ SimCad-2.0/tools/ejb3-persistence.jar,
+ SimCad-2.0/tools/guava-10.0.1.jar,
+ SimCad-2.0/tools/simLib.jar,
+ SimCad-2.0/tools/mylib.jar,
+ .
 Import-Package: com.ibm.icu.text,
  org.eclipse.core.filebuffers,
  org.eclipse.jface.text,
  org.eclipse.jface.text.source,
+ org.eclipse.ui.navigator,
  org.eclipse.ui.texteditor

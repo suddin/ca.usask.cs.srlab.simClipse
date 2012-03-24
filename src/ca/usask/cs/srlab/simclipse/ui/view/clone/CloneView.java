@@ -26,7 +26,7 @@ public class CloneView extends ViewPart {
 	private TreeViewer viewer;
 	
 	public static final String ID =
-        "ca.usask.cs.srlab.simclipse.ui.views.ClonesView";
+        "ca.usask.cs.srlab.simclipse.ui.view.ClonesView";
 	
 	public CloneView() {
 		// TODO Auto-generated constructor stub

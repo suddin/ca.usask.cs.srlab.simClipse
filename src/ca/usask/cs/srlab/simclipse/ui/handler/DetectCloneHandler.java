@@ -5,9 +5,12 @@ import java.util.Iterator;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.IWorkbenchPage;
@@ -21,6 +24,7 @@ import ca.usask.cs.srlab.simclipse.SimClipsePlugin;
 import ca.usask.cs.srlab.simclipse.ui.DetectionSettingsManager;
 import ca.usask.cs.srlab.simclipse.ui.preferences.PreferenceConstants;
 import ca.usask.cs.srlab.simclipse.ui.view.clone.CloneDetectionManager;
+import ca.usask.cs.srlab.simclipse.ui.view.project.ProjectViewItem;
 
 public class DetectCloneHandler extends AbstractHandler {
 	
@@ -52,33 +56,48 @@ public class DetectCloneHandler extends AbstractHandler {
 				return null;
 			Object elem = iter.next();
 
-			if (!(elem instanceof IProject) && !(elem instanceof IFolder))
+			if (!(elem instanceof IJavaProject
+					|| elem instanceof ProjectViewItem
+					|| elem instanceof IProject 
+					|| elem instanceof IFolder
+					|| elem instanceof IFile))
 				return null;
 
-			IProject project = null;
+			//IProject scopeProject = null;
+			IResource candidateResource = null;
+			
+			if (elem instanceof ProjectViewItem) {
+				// find the main project
+				elem = ((ProjectViewItem)elem).getResource().getProject();
+			} 
+			
+			if (elem instanceof IJavaProject) {
+				// find the main project
+				elem = ((IJavaProject)elem).getProject();
+			} 
+			
+			if (elem instanceof IProject) {
+				candidateResource = (IProject) ((IAdaptable) elem).getAdapter(IProject.class);
+			}
 			
 			if (elem instanceof IFolder) {
-				// find the main project
-				IFolder folder = (IFolder) ((IAdaptable) elem).getAdapter(IFolder.class);
-				project = folder.getProject();
+				candidateResource = (IFolder) ((IAdaptable) elem).getAdapter(IFolder.class);
 			}
-
-			project = (IProject) ((IAdaptable) elem).getAdapter(IProject.class);
-			if (project == null)
-				return null;
 			
+			if (elem instanceof IFile) {
+				candidateResource = (IFile) ((IAdaptable) elem).getAdapter(IFile.class);
+			}
 			
-			//TODO: Open and simclipse detection settings window
 			DetectionSettings detectionSettings;
 			Boolean popDetectionSettingPage = SimClipsePlugin.getDefault().getPreferenceStore().getBoolean(PreferenceConstants.SIMCAD_DETECTION_SETTING_POPUP);
 			
 			if(popDetectionSettingPage){
 				throw new SimClipseException("Feature not implemented");
 			}else{
-				detectionSettings = DetectionSettingsManager.getManager().getSavedDetectionSettingsForProject(project);
+				detectionSettings = DetectionSettingsManager.getManager().getSavedDetectionSettingsForProject(candidateResource.getProject());
 			}
 
-			CloneDetectionManager.getManager().detectClone(project, detectionSettings);
+			CloneDetectionManager.getManager().detectClone(candidateResource, candidateResource.getProject(), detectionSettings);
 		      
 //			boolean displayClone = MessageDialog.openQuestion(shell,
 //					"Clone Display", "Do you want to display the clones?");
@@ -88,6 +107,7 @@ public class DetectCloneHandler extends AbstractHandler {
 
 		} catch (Exception e) {
 			SimClipseLog.logError("Error in detecting clones", e);
+			
 		}
 		
 		return true;

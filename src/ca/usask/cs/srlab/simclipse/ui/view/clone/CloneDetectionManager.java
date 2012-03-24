@@ -1,30 +1,24 @@
 package ca.usask.cs.srlab.simclipse.ui.view.clone;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
 
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableContext;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.swt.widgets.Shell;
 
-import ca.usask.cs.srlab.simcad.Constants;
 import ca.usask.cs.srlab.simcad.DetectionSettings;
 import ca.usask.cs.srlab.simcad.model.CloneSet;
-import ca.usask.cs.srlab.simclipse.SimClipseConstants;
-import ca.usask.cs.srlab.simclipse.SimClipseException;
 import ca.usask.cs.srlab.simclipse.SimClipseLog;
 import ca.usask.cs.srlab.simclipse.SimClipsePlugin;
 import ca.usask.cs.srlab.simclipse.command.DetectCloneOperation;
@@ -52,19 +46,18 @@ public final class CloneDetectionManager {
 		listeners.remove(listener);
 	}
 
-	public void detectClone(IProject project, DetectionSettings detectionSettings) {
+	public void detectClone(IResource candidateForCloneDetection, IProject scopeForCloneDetection, DetectionSettings detectionSettings) {
 		//this.detectionSettings = detectionSettings;
 		
-		Shell shell = SimClipsePlugin.getActiveWorkbenchShell();//window.getShell();
-//		MessageDialog.openInformation(
-//				shell,
-//				"TODO",
-//				"Detecting Clones for project :"
-//						+ project.getName());
+		Shell shell = SimClipsePlugin.getActiveWorkbenchShell();
 		
-		 final List<IResource> projectForCloneDetection = Arrays.asList((IResource)project);
-         final DetectCloneOperation detectCloneOperation = new DetectCloneOperation(projectForCloneDetection, detectionSettings);
-         
+		SimClipsePlugin.getDefault().printToConsole("detecting clone for : " + scopeForCloneDetection.getName());
+		
+         //final DetectCloneOperation detectCloneOperation = new DetectCloneOperation(projectForCloneDetection, detectionSettings);
+		final DetectCloneOperation detectCloneOperation = (candidateForCloneDetection instanceof IProject) ? 
+				new DetectCloneOperation(Arrays.asList(scopeForCloneDetection), detectionSettings): 
+				new DetectCloneOperation(Arrays.asList(candidateForCloneDetection), Arrays.asList(scopeForCloneDetection), detectionSettings);
+			 
 	      // Execute the operation
 	     try {
 	         
@@ -88,16 +81,32 @@ public final class CloneDetectionManager {
 	      }
 	      catch (Exception e) {
 	         SimClipseLog.logError(e);
+	         SimClipsePlugin.getDefault().printToConsole("Exception in Clone DetectionManager : "+ e.toString());
 	      }
-		
-		// display clone
-	      
-	      try {
-				CloneViewManager.getManager().displayClone(project, buildCloneDisplayModel(project, detectCloneOperation.getDetectionResult(), detectionSettings));
-			} catch (CloneNotSupportedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+	
+		      
+		try {
+			
+			if(detectCloneOperation.getDetectionResult() == null || detectCloneOperation.getDetectionResult().isEmpty()){
+				
+				CloneViewManager.getManager().resetCloneView();
+				
+				MessageDialog.openInformation(
+						SimClipsePlugin.getActiveWorkbenchShell(),
+			            "SimClipse Clone Search", 
+			            "No clone found in: " + ((candidateForCloneDetection instanceof IProject)? "Project":(candidateForCloneDetection instanceof IFolder)?"Folder":"File") +" "+ candidateForCloneDetection.getProjectRelativePath().toOSString());
+				return;
 			}
+			
+			CloneViewManager.getManager().displayClone(
+					scopeForCloneDetection,
+					buildCloneDisplayModel(scopeForCloneDetection,
+							detectCloneOperation.getDetectionResult(),
+							detectionSettings));
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
+			SimClipsePlugin.getDefault().printToConsole("error occured in display clone manager...");
+		}
 		
 		//fireCloneviewItemChagned();
 	}
@@ -108,6 +117,8 @@ public final class CloneDetectionManager {
 		
 		IProject project = iResource.getProject();
 		
+		try{
+		
 		//this is root of a tree in the forest
 		CloneProjectDisplayModel cpm = new CloneProjectDisplayModel(project, detectionSettings.getCloneSetType());
 		cloneProjectModels.add(cpm);
@@ -117,9 +128,14 @@ public final class CloneDetectionManager {
 			cpm.addCloneSetModel(cloneSetModel);
 		}
 		
+		}catch (Exception e) {
+			e.printStackTrace();
+			SimClipseLog.logError("Error occured in building clone display models", e);
+			SimClipsePlugin.getDefault().printToConsole("Error occured in building clone display models...", e);
+		}
+		
 		return cloneProjectModels;
 	}
-	
 	
 	
 	private void fireCloneviewItemChagned() {

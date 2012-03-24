@@ -3,5 +3,5 @@
 <properties>
 	<comment>simcad custom configuration, overrides the default configuration in the library</comment>
 	<entry key="simcad.settings.general.fragment.file.relativeURL">true</entry>
-	<entry key="simcad.settings.general.install.url">/Users/sharif/Desktop/SimCad-2.0</entry>
+	<entry key="simcad.settings.general.install.url">../../SimCad-2.0</entry>
 </properties>

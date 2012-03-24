@@ -26,7 +26,7 @@ public class CloneFragmentDisplayModel extends CloneFragment implements ICloneVi
 	}
 
 	public String getDisplayLabel(){
-		return getFileName() +"("+getFromLine()+":"+getToLine()+")";
+		return getFileName() +" [Line: "+getFromLine()+"-"+getToLine()+"]";
 	} 
 	
 	public IFile getResource(){

@@ -1,4 +1,4 @@
-package ca.usask.cs.srlab.simclipse.ui.view.project;
+package ca.usask.cs.srlab.simclipse.ui.view.navigator;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -23,6 +23,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.PlatformObject;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.ui.IViewPart;
@@ -38,19 +39,19 @@ import ca.usask.cs.srlab.simclipse.ui.view.clone.CloneViewManager;
 import ca.usask.cs.srlab.simclipse.util.FileUtil;
 import ca.usask.cs.srlab.simclipse.util.PropertyUtil;
 
-public class ProjectViewManager
+public class NavigatorManager extends PlatformObject
 {
-//   private static final String TAG_FAVORITES = "Favorites";
-//   private static final String TAG_FAVORITE = "Favorite";
-//   private static final String TAG_TYPEID = "TypeId";
-//   private static final String TAG_INFO = "Info";
+   private static NavigatorManager manager;
+   
+   private static final IProject[] EMPTY_ARRAY = new IProject[0];
+   //private IProject[] projects;
+   
+   private Set<IProject> simClipseProjectItems;
+   
+   private List<INavigatorManagerListener> listeners =
+         new ArrayList<INavigatorManagerListener>();
 
-   private static ProjectViewManager manager;
-   private Set<IProjectViewItem> simClipseProjectItems;
-   private List<ProjectViewManagerListener> listeners =
-         new ArrayList<ProjectViewManagerListener>();
-
-   private ProjectViewManager() {
+   private NavigatorManager() {
    }
 
    // /////////////////////////////////////////////////////////////////////////
@@ -59,16 +60,16 @@ public class ProjectViewManager
    //
    // /////////////////////////////////////////////////////////////////////////
 
-   public static ProjectViewManager getManager() {
+   public static NavigatorManager getManager() {
       if (manager == null)
-         manager = new ProjectViewManager();
+         manager = new NavigatorManager();
       return manager;
    }
 
-   public IProjectViewItem[] getProjectViewItems() {
+   public IProject[] getSimClipseProjects() {
       if (simClipseProjectItems == null)
          loadProjectViewItems();
-      return simClipseProjectItems.toArray(new IProjectViewItem[simClipseProjectItems.size()]);
+      return simClipseProjectItems.toArray(new IProject[simClipseProjectItems.size()]);
    }
 
    // /////////////////////////////////////////////////////////////////////////
@@ -82,20 +83,20 @@ public class ProjectViewManager
          return;
       if (simClipseProjectItems == null)
          loadProjectViewItems();
-      Collection<IProjectViewItem> items =
-            new HashSet<IProjectViewItem>(objects.length);
+      Collection<IProject> items =
+            new HashSet<IProject>(objects.length);
       for (int i = 0; i < objects.length; i++) {
-         IProjectViewItem item = existingSimClipseProjectItemFor(objects[i]);
+         IProject item = existingSimClipseProjectItemFor(objects[i]);
          if (item == null) {
-            item = newSimClipseProjectItemFor(objects[i]);
+            item = (IProject) objects[i];
             if (simClipseProjectItems.add(item))
                items.add(item);
          }
       }
       if (items.size() > 0) {
-         IProjectViewItem[] added =
-               items.toArray(new IProjectViewItem[items.size()]);
-         fireProjectViewItemsChanged(added, IProjectViewItem.NONE);
+         IProject[] added =
+               items.toArray(new IProject[items.size()]);
+         fireProjectViewItemsChanged(added, EMPTY_ARRAY);
       }
    }
    
@@ -104,52 +105,42 @@ public class ProjectViewManager
          return;
       if (simClipseProjectItems == null)
          loadProjectViewItems();
-      Collection<IProjectViewItem> items =
-            new HashSet<IProjectViewItem>(objects.length);
+      Collection<IProject> items =
+            new HashSet<IProject>(objects.length);
       for (int i = 0; i < objects.length; i++) {
-         IProjectViewItem item = existingSimClipseProjectItemFor(objects[i]);
+         IProject item = existingSimClipseProjectItemFor(objects[i]);
          if (item != null && simClipseProjectItems.remove(item))
             items.add(item);
       }
       if (items.size() > 0) {
-         IProjectViewItem[] removed =
-               items.toArray(new IProjectViewItem[items.size()]);
-         fireProjectViewItemsChanged(IProjectViewItem.NONE, removed);
+         IProject[] removed =
+               items.toArray(new IProject[items.size()]);
+         fireProjectViewItemsChanged(EMPTY_ARRAY, removed);
       }
    }
 
-   public IProjectViewItem newSimClipseProjectItemFor(Object obj) {
-	   ProjectViewItemType[] types = ProjectViewItemType.getTypes();
-      for (int i = 0; i < types.length; i++) {
-         IProjectViewItem item = types[i].newProjectViewItem(obj);
-         if (item != null)
-            return item;
-      }
-      return null;
-   }
-
-   private IProjectViewItem existingSimClipseProjectItemFor(Object obj) {
+   private IProject existingSimClipseProjectItemFor(Object obj) {
       if (obj == null)
          return null;
-      if (obj instanceof IProjectViewItem)
-         return (IProjectViewItem) obj;
-      Iterator<IProjectViewItem> iter = simClipseProjectItems.iterator();
+      if (obj instanceof IProject)
+         return (IProject) obj;
+      Iterator<IProject> iter = simClipseProjectItems.iterator();
       while (iter.hasNext()) {
-         IProjectViewItem item = iter.next();
-         if (item.isProjectViewItemFor(obj))
-            return item;
+         IProject item = iter.next();
+         if(item.equals(obj))
+        	 return item;
       }
       return null;
    }
 
-   public IProjectViewItem[] existingFavoritesFor(Iterator<?> iter) {
-      List<IProjectViewItem> result = new ArrayList<IProjectViewItem>(10);
+   public IProject[] existingFavoritesFor(Iterator<?> iter) {
+      List<IProject> result = new ArrayList<IProject>(10);
       while (iter.hasNext()) {
-         IProjectViewItem item = existingSimClipseProjectItemFor(iter.next());
+         IProject item = existingSimClipseProjectItemFor(iter.next());
          if (item != null)
             result.add(item);
       }
-      return (IProjectViewItem[]) result.toArray(new IProjectViewItem[result.size()]);
+      return (IProject[]) result.toArray(new IProject[result.size()]);
    }
 
    // /////////////////////////////////////////////////////////////////////////
@@ -158,30 +149,30 @@ public class ProjectViewManager
    //
    // /////////////////////////////////////////////////////////////////////////
 
-   public void addSimClipseManagerListener(
-         ProjectViewManagerListener listener) {
+   public void addNavigatorManagerListener(
+         INavigatorManagerListener listener) {
       if (!listeners.contains(listener))
          listeners.add(listener);
    }
 
-   public void removeSimClipseManagerListener(
-		   ProjectViewManagerListener listener) {
+   public void removeNavigatorManagerListener(
+		   INavigatorManagerListener listener) {
       listeners.remove(listener);
    }
 
-	private void fireProjectViewItemsChanged(IProjectViewItem[] itemsAdded,
-			IProjectViewItem[] itemsRemoved) {
+	private void fireProjectViewItemsChanged(IProject[] itemsAdded,
+			IProject[] itemsRemoved) {
 
 		IWorkbenchPage page = SimClipsePlugin.getActivePage();
 
 		try {
 			if (page != null) {
-				IViewPart view = SimClipsePlugin.getViewIfExists(ProjectView.ID);
+				IViewPart view = SimClipsePlugin.getViewIfExists(SimEclipseNavigator.ID);
 					//page.findView(ProjectView.ID);
 				if (view != null)
 					page.bringToTop(view);
 				else{
-					page.showView(ProjectView.ID);
+					page.showView(SimEclipseNavigator.ID);
 					//new item will be picked up by a call to getProjectViewItems()
 					return;
 				}
@@ -190,9 +181,9 @@ public class ProjectViewManager
 			e.printStackTrace();
 		}
 
-		ProjectViewManagerEvent event = new ProjectViewManagerEvent(this,
+		NavigatorItemChangeEvent event = new NavigatorItemChangeEvent(this,
 				itemsAdded, itemsRemoved);
-		for (Iterator<ProjectViewManagerListener> iter = listeners.iterator(); iter
+		for (Iterator<INavigatorManagerListener> iter = listeners.iterator(); iter
 				.hasNext();)
 			iter.next().itemsChanged(event);
 	}
@@ -263,7 +254,7 @@ public class ProjectViewManager
 		*/
 		
 		try {
-			ProjectViewManager.getManager().addProjectViewItems(new IProject[] { project });
+			NavigatorManager.getManager().addProjectViewItems(new IProject[] { project });
 			project.refreshLocal(IResource.DEPTH_ONE, new NullProgressMonitor());
 
 //			addSimEclipseNature(project);
@@ -375,7 +366,7 @@ public class ProjectViewManager
 		try {
 //			removeSimEclipseNature(project);
 			 
-			ProjectViewManager.getManager().removeProjectViewItems(new IProject[]{ project});
+			NavigatorManager.getManager().removeProjectViewItems(new IProject[]{ project});
 			CloneViewManager.getManager().removeFromDisplayCache(project);
 			
 			project.refreshLocal(IResource.DEPTH_ONE, new NullProgressMonitor());
@@ -391,10 +382,9 @@ public class ProjectViewManager
    //
    // /////////////////////////////////////////////////////////////////////////
 
-   private void loadProjectViewItems() {
-      
+   protected void loadProjectViewItems() {
       IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
-      simClipseProjectItems = new HashSet<IProjectViewItem>(projects.length); 
+      simClipseProjectItems = new HashSet<IProject>(projects.length); 
       for (int i = 0; i < projects.length; i++){
     	  IProject project = projects[i];
     	  IPath simclipseDataFolder = project.getLocation().append(SimClipseConstants.SIMCLIPSE_DATA_FOLDER);
@@ -413,99 +403,8 @@ public class ProjectViewManager
 				}
     		  
 				if(properties.getProperty("simclipse.settings.local.active").equals("true"))
-					simClipseProjectItems.add(new ProjectViewItem( ProjectViewItemType.WORKBENCH_PROJECT, project));
+					simClipseProjectItems.add(project);
     	  }
       }
-      /*
-      simCadItems = new HashSet<ISimCadItem>(20);
-      FileReader reader = null;
-      try {
-         reader = new FileReader(getFavoritesFile());
-         loadSimCadItems(XMLMemento.createReadRoot(reader));
-      }
-      catch (FileNotFoundException e) {
-         // Ignored... no Favorites items exist yet.
-      }
-      catch (Exception e) {
-         // Log the exception and move on.
-         e.printStackTrace();
-    	  //FavoritesLog.logError(e);
-      }
-      finally {
-         try {
-            if (reader != null)
-               reader.close();
-         }
-         catch (IOException e) {
-           e.printStackTrace();
-        	 //FavoritesLog.logError(e);
-         }
-      }
-      */
-      
    }
-
-   /*
-   private void loadSimCadItems(XMLMemento memento) {
-      IMemento[] children = memento.getChildren(TAG_FAVORITE);
-      for (int i = 0; i < children.length; i++) {
-         ISimCadItem item =
-               newSimCadItemFor(children[i].getString(TAG_TYPEID),
-                     children[i].getString(TAG_INFO));
-         if (item != null)
-            simCadItems.add(item);
-      }
-   }
-
-   public ISimCadItem newSimCadItemFor(String typeId, String info) {
-	  SimCadItemType[] types = SimCadItemType.getTypes();
-      for (int i = 0; i < types.length; i++)
-         if (types[i].getId().equals(typeId))
-            return types[i].loadSimCadItem(info);
-      return null;
-   }
-
-   public void saveSimCadItems() {
-      if (simCadItems == null)
-         return;
-      XMLMemento memento = XMLMemento.createWriteRoot(TAG_FAVORITES);
-      saveFavorites(memento);
-      FileWriter writer = null;
-      try {
-         writer = new FileWriter(getFavoritesFile());
-         memento.save(writer);
-      }
-      catch (IOException e) {
-         e.printStackTrace();
-    	  //FavoritesLog.logError(e);
-      }
-      finally {
-         try {
-            if (writer != null)
-               writer.close();
-         }
-         catch (IOException e) {
-            e.printStackTrace();
-        	 //FavoritesLog.logError(e);
-         }
-      }
-   }
-
-   private void saveFavorites(XMLMemento memento) {
-      Iterator<ISimCadItem> iter = simCadItems.iterator();
-      while (iter.hasNext()) {
-         ISimCadItem item = iter.next();
-         IMemento child = memento.createChild(TAG_FAVORITE);
-         child.putString(TAG_TYPEID, item.getType().getId());
-         child.putString(TAG_INFO, item.getInfo());
-      }
-   }
-
-   private File getFavoritesFile() {
-      return SimCadActivator.getDefault()
-            .getStateLocation()
-            .append("favorites.xml")
-            .toFile();
-   }
-   */
 }
