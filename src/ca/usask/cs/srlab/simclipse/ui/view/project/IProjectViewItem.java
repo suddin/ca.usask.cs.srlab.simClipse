@@ -19,4 +19,12 @@ public interface IProjectViewItem extends IAdaptable {
 	String getInfo();
 
 	static IProjectViewItem[] NONE = new IProjectViewItem[] {};
+
+	boolean isDetectOnChangeEnable();
+
+	void setDetectOnChangeEnable(boolean isDetectOnChangeEnable);
+
+	boolean isAutoCloneIndexUpdate();
+
+	void setAutoCloneIndexUpdate(boolean isAutoCloneIndexUpdate);
 }

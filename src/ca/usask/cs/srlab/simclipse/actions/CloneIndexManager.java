@@ -1,9 +1,10 @@
 package ca.usask.cs.srlab.simclipse.actions;
 
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 
 import ca.usask.cs.srlab.simcad.DetectionSettings;
@@ -13,7 +14,9 @@ import ca.usask.cs.srlab.simcad.dataprovider.filesystem.FileSystemFragmentDataPr
 import ca.usask.cs.srlab.simcad.index.ICloneIndex;
 import ca.usask.cs.srlab.simcad.index.IndexBuilder;
 import ca.usask.cs.srlab.simcad.index.IndexFactory;
+import ca.usask.cs.srlab.simcad.model.CloneFragment;
 import ca.usask.cs.srlab.simclipse.SimClipseConstants;
+import ca.usask.cs.srlab.simclipse.ui.DetectionSettingsManager;
 
 public class CloneIndexManager {
 
@@ -27,39 +30,71 @@ public class CloneIndexManager {
 		return manager;
 	}
 
-	public ICloneIndex getCloneIndex( List<IProject> scopeForCloneDetection, DetectionSettings detectionSettings){
-		return getCloneIndex(scopeForCloneDetection, detectionSettings, false);
+	public ICloneIndex getCloneIndex(IProject scopeForCloneDetection, DetectionSettings detectionSettings){
+		String indexKey = scopeForCloneDetection.getName()+"#"+detectionSettings.getCloneGranularity()+"#"+detectionSettings.getSourceTransformation();
+		if(cloneIndexCache.containsKey(indexKey)){
+			ICloneIndex cloneIndex = cloneIndexCache.get(indexKey);
+			if(cloneIndex.isDirty()) cloneIndex.resetDetectionFlags();
+			return cloneIndex;
+		} else
+			return getCloneIndex(scopeForCloneDetection, detectionSettings, true);
 	}
 	
-	public ICloneIndex getCloneIndex( List<IProject> scopeForCloneDetection, DetectionSettings detectionSettings, boolean forceBuild){
-		String indexKey = scopeForCloneDetection.get(0).getProject().getName()+"#"+detectionSettings.getCloneGranularity()+"#"+detectionSettings.getSourceTransformation();
+	public ICloneIndex getCloneIndex(IProject scopeForCloneDetection, DetectionSettings detectionSettings, boolean forceBuild){
 		
 		if(!forceBuild){
-			if(cloneIndexCache.containsKey(indexKey)){
-				return cloneIndexCache.get(indexKey).resetDetectionFlags();
-			}
+			return getCloneIndex(scopeForCloneDetection, detectionSettings);
 		}
 		
-		String source_dir = scopeForCloneDetection.get(0).getProject().getLocation().toOSString();
+		String source_dir = scopeForCloneDetection.getLocation().toOSString();
 		String output_dir = source_dir + System.getProperty("file.separator") + SimClipseConstants.SIMCLIPSE_DATA_FOLDER;
 		
+		ICloneIndex cloneIndex = buildCloneIndex(detectionSettings, source_dir, output_dir, forceBuild);
+		
+		String indexKey = scopeForCloneDetection.getName()+"#"+detectionSettings.getCloneGranularity()+"#"+detectionSettings.getSourceTransformation();
+		cloneIndexCache.put(indexKey, cloneIndex);
+		
+		return cloneIndex;
+	}
+
+	public ICloneIndex buildCloneIndex(DetectionSettings detectionSettings, String source_dir, String output_dir, boolean forceBuild) {
 		//source data extraction
 		FileSystemFragmentDataProviderConfiguration dataProviderConfig = new FileSystemFragmentDataProviderConfiguration(
 				source_dir, output_dir,
 				SimClipseConstants.SIMCLIPSE_DEFAULT_LANGUAGE,
 				detectionSettings.getSourceTransformation(),
-				detectionSettings.getCloneGranularity());
+				detectionSettings.getCloneGranularity(), forceBuild);
 		IFragmentDataProvider cloneFragmentDataProvider = new FileSystemFragmentDataProvider(dataProviderConfig);
 		
 		//index generation
 		ICloneIndex cloneIndex = IndexFactory.LoadIndexHolder();
 		IndexBuilder indexBuilder = new IndexBuilder(cloneFragmentDataProvider);
 		indexBuilder.buildCloneIndex(cloneIndex, detectionSettings);
-		
-		cloneIndexCache.put(indexKey, cloneIndex);
-		
 		return cloneIndex;
 	}
-	
+
+	public static Collection<CloneFragment> getCloneFragmentsbyResourceId(
+			ICloneIndex cloneIndex, boolean isUrlRelative, IFile file) {
+		String relative = System.getProperty("file.separator")+file.getProjectRelativePath().toOSString();
+		String full = file.getLocation().toOSString();
+		Collection<CloneFragment> cloneFragments;
+		if (isUrlRelative)
+			cloneFragments = cloneIndex.getAllByResourceId(relative);
+		else
+			cloneFragments = cloneIndex.getAllByResourceId(full);
+		return cloneFragments;
+	}
+
+	public void removeCloneIndexFromCache(IProject project) {
+		DetectionSettings detectionSettings = DetectionSettingsManager.getManager().getSavedDetectionSettingsForProject(project);
+		String indexKey = project.getName()+"#"+detectionSettings.getCloneGranularity()+"#"+detectionSettings.getSourceTransformation();
+		cloneIndexCache.remove(indexKey);
+	}
+
+	public void saveAutoCloneIndexUpdateStatus(IProject project,
+			boolean enableAutoCloneIndexUpdate) {
+		// TODO Auto-generated method stub
+		
+	}
 	
 }

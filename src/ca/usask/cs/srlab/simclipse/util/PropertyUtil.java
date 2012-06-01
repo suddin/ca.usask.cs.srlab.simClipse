@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
 
 import ca.usask.cs.srlab.simclipse.SimClipseConstants;
@@ -15,14 +16,16 @@ import ca.usask.cs.srlab.simclipse.SimClipseConstants;
 public class PropertyUtil {
 
 	
-	public static void addOrUpdateSimclipseProperties(IPath simclipseDataFolder, Object key, Object value) {
+	public static void addOrUpdateSimclipseProperties(IProject project, Object key, Object value) {
 		Map<Object, Object> properties = new HashMap<Object, Object>();
 		properties.put(key, value);
-		addOrUpdateSimClipseProperties( simclipseDataFolder, properties);
+		addOrUpdateSimClipseProperties(project, properties);
 	}
 	
 	
-	public static void addOrUpdateSimClipseProperties(IPath simclipseDataFolder, Map<Object, Object> propsMap) {
+	public static void addOrUpdateSimClipseProperties(IProject project, Map<Object, Object> propsMap) {
+		IPath simclipseDataFolder = project.getLocation().append(SimClipseConstants.SIMCLIPSE_DATA_FOLDER);
+		
 		if(!simclipseDataFolder.toFile().exists())
 			simclipseDataFolder.toFile().mkdir();
 		
@@ -45,5 +48,25 @@ public class PropertyUtil {
 		}
 	}
 	
+	
+	public static String getSimClipsePropertyValue(IProject project, Object key) {
+		IPath simclipseDataFolder = project.getLocation().append(SimClipseConstants.SIMCLIPSE_DATA_FOLDER);
+		Properties properties = new Properties();
+		try {
+			if (simclipseDataFolder
+					.append(SimClipseConstants.SIMCLIPSE_SETTINGS_FILE)
+					.toFile().exists())
+				properties.load(new FileInputStream(simclipseDataFolder.append(
+						SimClipseConstants.SIMCLIPSE_SETTINGS_FILE).toFile()));
+
+			return properties.get(key)!=null? properties.get(key).toString():null;
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 	
 }

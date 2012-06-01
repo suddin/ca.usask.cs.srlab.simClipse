@@ -25,6 +25,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
@@ -40,15 +41,10 @@ import ca.usask.cs.srlab.simclipse.util.PropertyUtil;
 
 public class ProjectViewManager
 {
-//   private static final String TAG_FAVORITES = "Favorites";
-//   private static final String TAG_FAVORITE = "Favorite";
-//   private static final String TAG_TYPEID = "TypeId";
-//   private static final String TAG_INFO = "Info";
 
    private static ProjectViewManager manager;
    private Set<IProjectViewItem> simClipseProjectItems;
-   private List<ProjectViewManagerListener> listeners =
-         new ArrayList<ProjectViewManagerListener>();
+	private List<ProjectViewManagerListener> listeners = new ArrayList<ProjectViewManagerListener>();
 
    private ProjectViewManager() {
    }
@@ -118,6 +114,19 @@ public class ProjectViewManager
       }
    }
 
+   public void refreshProjectViewItems(Object object){
+	   refreshProjectViewItems(object, false);
+   }
+   
+	public void refreshProjectViewItems(Object object, boolean isDetectOnChangeEnable) {
+		IProjectViewItem item = existingSimClipseProjectItemFor(object);
+		if (item != null) {
+			item.setDetectOnChangeEnable(isDetectOnChangeEnable);
+			fireProjectViewItemsChanged(new IProjectViewItem[] { item },
+					new IProjectViewItem[] { item });
+		}
+	}
+   
    public IProjectViewItem newSimClipseProjectItemFor(Object obj) {
 	   ProjectViewItemType[] types = ProjectViewItemType.getTypes();
       for (int i = 0; i < types.length; i++) {
@@ -128,7 +137,7 @@ public class ProjectViewManager
       return null;
    }
 
-   private IProjectViewItem existingSimClipseProjectItemFor(Object obj) {
+   public IProjectViewItem existingSimClipseProjectItemFor(Object obj) {
       if (obj == null)
          return null;
       if (obj instanceof IProjectViewItem)
@@ -158,38 +167,47 @@ public class ProjectViewManager
    //
    // /////////////////////////////////////////////////////////////////////////
 
-   public void addSimClipseManagerListener(
-         ProjectViewManagerListener listener) {
-      if (!listeners.contains(listener))
-         listeners.add(listener);
-   }
+	public void addProjectViewManagerListener(
+			ProjectViewManagerListener listener) {
+		if (!listeners.contains(listener))
+			listeners.add(listener);
+	}
 
-   public void removeSimClipseManagerListener(
-		   ProjectViewManagerListener listener) {
-      listeners.remove(listener);
-   }
+	public void removeProjectViewManagerListener(
+			ProjectViewManagerListener listener) {
+		listeners.remove(listener);
+	}
 
 	private void fireProjectViewItemsChanged(IProjectViewItem[] itemsAdded,
 			IProjectViewItem[] itemsRemoved) {
 
-		IWorkbenchPage page = SimClipsePlugin.getActivePage();
+		final IWorkbenchPage page = SimClipsePlugin.getActivePage();
 
-		try {
-			if (page != null) {
-				IViewPart view = SimClipsePlugin.getViewIfExists(ProjectView.ID);
-					//page.findView(ProjectView.ID);
-				if (view != null)
-					page.bringToTop(view);
-				else{
-					page.showView(ProjectView.ID);
-					//new item will be picked up by a call to getProjectViewItems()
-					return;
+//		Display.getDefault().syncExec(new Runnable() {
+//			@Override
+//			public void run() {
+
+				try {
+					
+					if (page != null) {
+
+						IViewPart view = SimClipsePlugin.getViewIfExists(ProjectView.ID);
+						// page.findView(ProjectView.ID);
+						if (view != null)
+							page.bringToTop(view);
+						else {
+							page.showView(ProjectView.ID);
+							// new item will be picked up by a call to getProjectViewItems()
+							return;
+						}
+					}
+					
+				} catch (PartInitException e) {
+					e.printStackTrace();
 				}
-			}
-		} catch (PartInitException e) {
-			e.printStackTrace();
-		}
-
+//			}
+//		});
+		
 		ProjectViewManagerEvent event = new ProjectViewManagerEvent(this,
 				itemsAdded, itemsRemoved);
 		for (Iterator<ProjectViewManagerListener> iter = listeners.iterator(); iter
@@ -211,11 +229,13 @@ public class ProjectViewManager
 						.append(SimClipseConstants.SIMCLIPSE_SETTINGS_FILE).toFile()
 						.exists()) {
 
-			PropertyUtil.addOrUpdateSimclipseProperties(simclipseDataFolder, "simclipse.settings.local.active", "true");
+			PropertyUtil.addOrUpdateSimclipseProperties(project, "simclipse.settings.local.active", "true");
 			
 		} else {
 			Map<Object, Object> propsMap = new HashMap<Object, Object>();
 			propsMap.put("simclipse.settings.local.active", "true");
+			propsMap.put("simclipse.settings.local.runtime.detectionOnResourceChange", "false");
+			propsMap.put("simclipse.settings.local.runtime.autoCloneIndexUpdate", "false");
 			
 			propsMap.put("simclipse.settings.local.preprocessing.sourceTransformation","generous");
 			propsMap.put("simclipse.settings.local.detection.language","java");
@@ -229,7 +249,7 @@ public class ProjectViewManager
 			propsMap.put("simclipse.status.local.preprocessing.indexing.function","");
 			propsMap.put("simclipse.status.local.preprocessing.indexing.block","");
 			
-			PropertyUtil.addOrUpdateSimClipseProperties(simclipseDataFolder, propsMap);
+			PropertyUtil.addOrUpdateSimClipseProperties(project, propsMap);
 		}
 		
 		/*
@@ -367,7 +387,7 @@ public class ProjectViewManager
 						.append(SimClipseConstants.SIMCLIPSE_SETTINGS_FILE).toFile()
 						.exists()) {
 
-			PropertyUtil.addOrUpdateSimclipseProperties(simclipseDataFolder, "simclipse.settings.local.active", "false");
+			PropertyUtil.addOrUpdateSimclipseProperties(project, "simclipse.settings.local.active", "false");
 		} else {
 			// should not be happened!
 		}
@@ -397,6 +417,13 @@ public class ProjectViewManager
       simClipseProjectItems = new HashSet<IProjectViewItem>(projects.length); 
       for (int i = 0; i < projects.length; i++){
     	  IProject project = projects[i];
+    	  
+    	  //System.out.println("project :" + project.getName() +" is "+ (project.isOpen() ? "open":"closed") );
+    	  
+    	  if(project.isHidden() || !project.isOpen() || !project.exists()){
+    		  continue;
+    	  }
+    	  
     	  IPath simclipseDataFolder = project.getLocation().append(SimClipseConstants.SIMCLIPSE_DATA_FOLDER);
     	  if(simclipseDataFolder.toFile().exists()
     			  && simclipseDataFolder.append(SimClipseConstants.SIMCLIPSE_SETTINGS_FILE).toFile().exists()){
@@ -412,100 +439,15 @@ public class ProjectViewManager
 					e.printStackTrace();
 				}
     		  
-				if(properties.getProperty("simclipse.settings.local.active").equals("true"))
-					simClipseProjectItems.add(new ProjectViewItem( ProjectViewItemType.WORKBENCH_PROJECT, project));
+				String active = properties.getProperty("simclipse.settings.local.active");
+				if(active != null && active.equals("true")){
+					boolean isDetectOnChangeEnable = Boolean.valueOf(properties.getProperty("simclipse.settings.local.runtime.detectionOnResourceChange"));
+					boolean isAutoCloneIndexUpdate = Boolean.valueOf(properties.getProperty("simclipse.settings.local.runtime.autoCloneIndexUpdate"));
+					simClipseProjectItems.add(new ProjectViewItem( ProjectViewItemType.WORKBENCH_PROJECT, project, isDetectOnChangeEnable, isAutoCloneIndexUpdate));
+				}
     	  }
       }
-      /*
-      simCadItems = new HashSet<ISimCadItem>(20);
-      FileReader reader = null;
-      try {
-         reader = new FileReader(getFavoritesFile());
-         loadSimCadItems(XMLMemento.createReadRoot(reader));
-      }
-      catch (FileNotFoundException e) {
-         // Ignored... no Favorites items exist yet.
-      }
-      catch (Exception e) {
-         // Log the exception and move on.
-         e.printStackTrace();
-    	  //FavoritesLog.logError(e);
-      }
-      finally {
-         try {
-            if (reader != null)
-               reader.close();
-         }
-         catch (IOException e) {
-           e.printStackTrace();
-        	 //FavoritesLog.logError(e);
-         }
-      }
-      */
       
    }
 
-   /*
-   private void loadSimCadItems(XMLMemento memento) {
-      IMemento[] children = memento.getChildren(TAG_FAVORITE);
-      for (int i = 0; i < children.length; i++) {
-         ISimCadItem item =
-               newSimCadItemFor(children[i].getString(TAG_TYPEID),
-                     children[i].getString(TAG_INFO));
-         if (item != null)
-            simCadItems.add(item);
-      }
-   }
-
-   public ISimCadItem newSimCadItemFor(String typeId, String info) {
-	  SimCadItemType[] types = SimCadItemType.getTypes();
-      for (int i = 0; i < types.length; i++)
-         if (types[i].getId().equals(typeId))
-            return types[i].loadSimCadItem(info);
-      return null;
-   }
-
-   public void saveSimCadItems() {
-      if (simCadItems == null)
-         return;
-      XMLMemento memento = XMLMemento.createWriteRoot(TAG_FAVORITES);
-      saveFavorites(memento);
-      FileWriter writer = null;
-      try {
-         writer = new FileWriter(getFavoritesFile());
-         memento.save(writer);
-      }
-      catch (IOException e) {
-         e.printStackTrace();
-    	  //FavoritesLog.logError(e);
-      }
-      finally {
-         try {
-            if (writer != null)
-               writer.close();
-         }
-         catch (IOException e) {
-            e.printStackTrace();
-        	 //FavoritesLog.logError(e);
-         }
-      }
-   }
-
-   private void saveFavorites(XMLMemento memento) {
-      Iterator<ISimCadItem> iter = simCadItems.iterator();
-      while (iter.hasNext()) {
-         ISimCadItem item = iter.next();
-         IMemento child = memento.createChild(TAG_FAVORITE);
-         child.putString(TAG_TYPEID, item.getType().getId());
-         child.putString(TAG_INFO, item.getInfo());
-      }
-   }
-
-   private File getFavoritesFile() {
-      return SimCadActivator.getDefault()
-            .getStateLocation()
-            .append("favorites.xml")
-            .toFile();
-   }
-   */
 }

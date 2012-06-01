@@ -5,8 +5,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.swt.SWT;
 
-import ca.usask.cs.srlab.simcad.model.CloneFragment;
 import ca.usask.cs.srlab.simcad.model.CloneSet;
 import ca.usask.cs.srlab.simcad.model.ICloneFragment;
 import ca.usask.cs.srlab.simclipse.SimClipsePlugin;
@@ -18,15 +18,7 @@ public class CloneSetDisplayModel extends CloneSet implements ICloneViewItem{
 	public CloneSetDisplayModel(CloneSet cloneSet, CloneProjectDisplayModel parentProject) throws CloneNotSupportedException {
 		super(cloneSet.clone());
 		this.parentProject = parentProject;
-		
 		this.getCloneFragments().clear();
-		
-		List<ICloneFragment> cloneFragments = cloneSet.getCloneFragments();
-		for(ICloneFragment iCloneFragment : cloneFragments){
-			CloneFragment cf = (CloneFragment) iCloneFragment;
-			CloneFragmentDisplayModel cloneFragmentModel = new CloneFragmentDisplayModel(cf.clone() , this);
-			addCloneFragmentModel(cloneFragmentModel);
-		}
 	}
 	
 	public List<? extends ICloneViewItem> getCloneFragmentModels() {
@@ -52,7 +44,7 @@ public class CloneSetDisplayModel extends CloneSet implements ICloneViewItem{
 		return this.getCloneFragments() != null ? Arrays.asList(this.getCloneFragments().toArray(new ICloneViewItem[this.getCloneFragments().size()])) : new ArrayList<ICloneViewItem>();
 	}
 	
-	private void addCloneFragmentModel(CloneFragmentDisplayModel cloneFragmentModel){
+	public void addCloneFragmentModel(CloneFragmentDisplayModel cloneFragmentModel){
 		if(this.getCloneFragments() == null)
 			this.setCloneFragments(new ArrayList<ICloneFragment>());
 		this.getCloneFragments().add(cloneFragmentModel);
@@ -61,5 +53,9 @@ public class CloneSetDisplayModel extends CloneSet implements ICloneViewItem{
 	@Override
 	public ImageDescriptor getImageDescriptor() {
 		return SimClipsePlugin.getImageDescriptor("clone_group_4.png");
+	}
+	
+	public int getLabelTextColor(){
+		return SWT.COLOR_BLACK;
 	}
 }

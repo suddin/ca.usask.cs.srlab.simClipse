@@ -27,15 +27,15 @@ public class DetectionSettingsManager {
 	public static DetectionSettingsManager getManager() {
 		if (manager == null){
 			manager = new DetectionSettingsManager();
-			cache = new HashMap<String, DetectionSettings>(5);
+			cache = new HashMap<String, DetectionSettings>(10);
 		}
 		return manager;
 	}
 	
 	public DetectionSettings getSavedDetectionSettingsForProject(IProject project){
 		
-		if(cache.containsKey(project.getFullPath().toOSString())){
-			return cache.get(project.getFullPath().toOSString());
+		if(cache.containsKey(project.getName())){
+			return cache.get(project.getName());
 		}
 		
 		IPath simclipseDataFolder = project.getLocation().append(
@@ -43,6 +43,12 @@ public class DetectionSettingsManager {
 
 		Properties properties = new Properties();
 		try {
+			
+			if(!simclipseDataFolder.append(
+					SimClipseConstants.SIMCLIPSE_SETTINGS_FILE).toFile().exists()){
+				return null;
+			}
+			
 			properties.load(new FileInputStream(simclipseDataFolder.append(
 					SimClipseConstants.SIMCLIPSE_SETTINGS_FILE).toFile()));
 		} catch (FileNotFoundException e) {
@@ -88,8 +94,8 @@ public class DetectionSettingsManager {
 		propsMap.put("simclipse.settings.local.detection.cloneGranularity",detectionSettings.getCloneGranularity());
 		propsMap.put("simclipse.settings.local.detection.cloneSetType",detectionSettings.getCloneSetType());
 
-		PropertyUtil.addOrUpdateSimClipseProperties(simclipseDataFolder, propsMap);
+		PropertyUtil.addOrUpdateSimClipseProperties(project, propsMap);
 		
-		cache.put(project.getFullPath().toOSString(), detectionSettings);
+		cache.put(project.getName(), detectionSettings);
 	}
 }

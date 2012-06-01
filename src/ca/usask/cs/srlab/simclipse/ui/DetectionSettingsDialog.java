@@ -32,7 +32,8 @@ public class DetectionSettingsDialog extends ExtendedDialogWindow{
 		super(window.getShell());
 		this.iProject= iProject;
 		DetectionSettings savedDetectionSettings = DetectionSettingsManager.getManager().getSavedDetectionSettingsForProject(iProject);
-		detectionSettingsPagePage = new DetectionSettingsPage(savedDetectionSettings);
+		RuntimeSettings savedRuntimeSettings = RuntimeSettingsManager.getManager().getSavedRuntimeSettingsForProject(iProject);
+		detectionSettingsPagePage = new DetectionSettingsPage(savedDetectionSettings, savedRuntimeSettings);
 	}
 
 	@Override
@@ -48,7 +49,7 @@ public class DetectionSettingsDialog extends ExtendedDialogWindow{
 	@Override
 	protected void configureShell(Shell shell) {
 		super.configureShell(shell);
-		shell.setSize(400, 450);
+		shell.setSize(400, 500);
 		shell.setLocation(shell.getParent().getLocation().x +(shell.getParent().getSize().x - shell.getSize().x)/2 ,shell.getParent().getLocation().y + (shell.getParent().getSize().y - shell.getSize().y)/2);
 		shell.setText(Messages.format(SimClipseMessages.DetectionSettingsDialog_title, iProject.getName()));
 	}
@@ -146,7 +147,7 @@ public class DetectionSettingsDialog extends ExtendedDialogWindow{
 				SafeRunner.run(new ISafeRunnable() {
 					public void run() throws Exception {
 						// create page and control
-						DetectionSettingsPage page= detectionSettingsPagePage;
+						DetectionSettingsPage page = detectionSettingsPagePage;
 						if (page != null) {
 							page.createControl(pageWrapper);
 						}

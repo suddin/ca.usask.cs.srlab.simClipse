@@ -12,6 +12,7 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.handlers.HandlerUtil;
 
@@ -25,6 +26,16 @@ public class DisableSimClipseHandler extends AbstractHandler
          throws ExecutionException {
       ISelection selection = HandlerUtil.getCurrentSelection(event);
       boolean sureRemoveSimClipse = false;
+      
+      boolean isCloseProjectEvent = Boolean.valueOf(event.getParameter("isCloseProjectEvent"));
+      
+      if(isCloseProjectEvent){
+			if (event.getTrigger() instanceof IProject) {
+				selection = new StructuredSelection(event.getTrigger());
+			} 
+      }
+      
+      if(selection == null) return null;
       
       if (selection instanceof IStructuredSelection){
     	  
@@ -67,6 +78,13 @@ public class DisableSimClipseHandler extends AbstractHandler
 				boolean keepSimclipseData = false;
 				
 				Shell shell = (Shell) project.getAdapter(Shell.class);
+				
+				if (isCloseProjectEvent) {
+					ProjectViewManager.getManager()
+							.deactivateSimclipseForProject(project,
+									keepSimclipseData);
+					return null;
+				}
 				
 				sureRemoveSimClipse = MessageDialog.openQuestion(shell, "Remove SimEclipse",
 		                  "Are you sure you want to disable SimEclipse?");

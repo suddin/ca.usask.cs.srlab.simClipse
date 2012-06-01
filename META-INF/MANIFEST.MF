@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: SimEclipse
 Bundle-SymbolicName: ca.usask.cs.srlab.simClipse;singleton:=true
-Bundle-Version: 0.0.0.9_beta
+Bundle-Version: 0.0.0.1
 Bundle-Activator: ca.usask.cs.srlab.simclipse.SimClipsePlugin
 Bundle-Localization: plugin
 Require-Bundle: org.eclipse.ui,
@@ -14,7 +14,9 @@ Require-Bundle: org.eclipse.ui,
  org.apache.commons.logging;bundle-version="1.0.4",
  org.eclipse.ui.console;bundle-version="3.5.0",
  org.eclipse.ui.navigator;bundle-version="3.5.0",
- org.eclipse.emf.edit.ui;bundle-version="2.6.0"
+ org.eclipse.emf.edit.ui;bundle-version="2.6.0",
+ org.eclipse.compare.core;bundle-version="3.5.101",
+ org.eclipse.compare;bundle-version="3.5.101"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Bundle-ClassPath: SimCad-2.0/tools/commons-collections-3.2.1.jar,
@@ -24,8 +26,12 @@ Bundle-ClassPath: SimCad-2.0/tools/commons-collections-3.2.1.jar,
  SimCad-2.0/tools/mylib.jar,
  .
 Import-Package: com.ibm.icu.text,
+ org.eclipse.compare.structuremergeviewer,
  org.eclipse.core.filebuffers,
  org.eclipse.jface.text,
  org.eclipse.jface.text.source,
+ org.eclipse.team.core.synchronize,
+ org.eclipse.ui.forms.events,
+ org.eclipse.ui.forms.widgets,
  org.eclipse.ui.navigator,
  org.eclipse.ui.texteditor

@@ -7,19 +7,19 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.DialogPage;
-import org.eclipse.jface.dialogs.ErrorDialog;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.custom.CLabel;
-import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -27,12 +27,15 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Shell;
 
 import ca.usask.cs.srlab.simcad.Constants;
 import ca.usask.cs.srlab.simcad.DetectionSettings;
 import ca.usask.cs.srlab.simcad.model.CloneSet;
 import ca.usask.cs.srlab.simclipse.SimClipsePlugin;
+import ca.usask.cs.srlab.simclipse.actions.CloneIndexManager;
+import ca.usask.cs.srlab.simclipse.clone.track.CloneTrackManager;
+import ca.usask.cs.srlab.simclipse.ui.view.project.IProjectViewItem;
+import ca.usask.cs.srlab.simclipse.ui.view.project.ProjectViewManager;
 
 public class DetectionSettingsPage extends DialogPage{
 
@@ -47,13 +50,16 @@ public class DetectionSettingsPage extends DialogPage{
 	private CLabel fStatusLabel;
 	private Button fSearchDerivedCheckbox;
 	
-	public DetectionSettingsPage(DetectionSettings existingSettings) {
+	public DetectionSettingsPage(DetectionSettings detectionSettings, RuntimeSettings runtimeSettings) {
 		super();
-	    selectedLanguage = existingSettings.getLanguage();
-		selectedGranularity = existingSettings.getCloneGranularity();
-		selectedCloneSet = existingSettings.getCloneSetType();
-		selectedSourceTransformationApproach = existingSettings.getSourceTransformation();
-		selectedCloneTypes.addAll(Arrays.asList(existingSettings.getCloneTypes()));
+	    selectedLanguage = detectionSettings.getLanguage();
+		selectedGranularity = detectionSettings.getCloneGranularity();
+		selectedCloneSet = detectionSettings.getCloneSetType();
+		selectedSourceTransformationApproach = detectionSettings.getSourceTransformation();
+		selectedCloneTypes.addAll(Arrays.asList(detectionSettings.getCloneTypes()));
+		
+		enableCloneNotification = runtimeSettings.isEnableDetectionOnResourceChange();
+		enableAutoCloneIndexUpdate = runtimeSettings.isEnableAutoCloneIndexUpdate();
 	}
 
 	private Button add, delete, clear;
@@ -73,10 +79,69 @@ public class DetectionSettingsPage extends DialogPage{
 	private  Set<String> selectedCloneTypes = new HashSet<String>();
 	private  Map<String, Button> cloneTypeFields = new HashMap<String, Button>();
 	
-
-	public boolean performAction(IProject project) {
+	private boolean enableCloneNotification;
+	Button enableCloneNotificationCheckBox;
+	
+	private boolean  enableAutoCloneIndexUpdate;
+	Button enableAutoCloneIndexUpdateCheckBox;
+	
+	
+	public boolean performAction(final IProject project) {
 		DetectionSettings detectionSettings = new DetectionSettings(selectedLanguage, selectedGranularity, selectedCloneSet, selectedSourceTransformationApproach, false, selectedCloneTypes.toArray(new String[0]));
 		DetectionSettingsManager.getManager().saveDetectionSettingsForProject(project, detectionSettings);
+		
+		CloneTrackManager.getManager().saveDetectionOnResourceChangeStatus(project, enableCloneNotification);
+		
+		CloneIndexManager.getManager().saveAutoCloneIndexUpdateStatus(project, enableAutoCloneIndexUpdate);
+		
+		if(enableCloneNotification){ //disable others
+			for(IProjectViewItem pvi : ProjectViewManager.getManager().getProjectViewItems()){
+				if(!pvi.getResource().getProject().getName().equals(project.getName())){
+					pvi.setDetectOnChangeEnable(false);
+					CloneTrackManager.getManager().saveDetectionOnResourceChangeStatus(pvi.getResource().getProject(), false);
+				}
+			}
+		}
+		
+		/*
+		Job updateDetectOnChangeStatusJob = new Job("Update DetectOnChange status for simeclipse enabled project") {
+			@Override
+			protected IStatus run(IProgressMonitor monitor) {
+				// this involves index update of project where DetectOnChange feature is Enabled
+				
+				//Display.getDefault().asyncExec();
+				
+//				BusyIndicator.showWhile(SimClipsePlugin.getDefault().getWorkbench().getDisplay(),  new Runnable() {
+//					@Override
+//					public void run() {
+						// Do something in the user interface
+						CloneTrackManager.getManager().saveDetectionOnResourceChangeStatus(project, enableCloneNotification);
+						
+						if(enableCloneNotification){ //disable others
+							for(IProjectViewItem pvi : ProjectViewManager.getManager().getProjectViewItems()){
+								if(!pvi.getResource().getProject().getName().equals(project.getName())){
+									pvi.setDetectOnChangeEnable(false);
+									CloneTrackManager.getManager().saveDetectionOnResourceChangeStatus(pvi.getResource().getProject(), false);
+								}
+							}
+						}
+
+//					}
+//				});
+				
+				//Display.getDefault().asyncExec(rb);
+				
+				return Status.OK_STATUS;
+			}
+		};
+
+		
+		// Start the Job
+		updateDetectOnChangeStatusJob.schedule();
+		
+		*/
+		
+		
 		return true;
 	}
 
@@ -109,7 +174,7 @@ public class DetectionSettingsPage extends DialogPage{
 //		settingsGroup.setLayoutData(data);
 
 		createDetectionSettingsControl(result);
-		//createRuntimeSettingControl(result);
+		createRuntimeSettingControl(result);
 		
 		setControl(result);
 		Dialog.applyDialogFont(result);
@@ -333,9 +398,39 @@ public class DetectionSettingsPage extends DialogPage{
    */
   void createRuntimeSettingWidgets(Composite runtimeSettingsGroup) {
     /* Controls for adding and removing children */
-    add = new Button(runtimeSettingsGroup, SWT.PUSH);
+    
+	// Text line which explains the special characters
+	  enableCloneNotificationCheckBox= new Button(runtimeSettingsGroup, SWT.CHECK);
+	  enableCloneNotificationCheckBox.setText("Notify Clone on Code Change");
+	  enableCloneNotificationCheckBox.setSelection(enableCloneNotification);
+
+	  enableCloneNotificationCheckBox.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				enableCloneNotification= enableCloneNotificationCheckBox.getSelection();
+			}
+		});
+	  enableCloneNotificationCheckBox.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+	  enableCloneNotificationCheckBox.setFont(runtimeSettingsGroup.getFont());
+	  
+	  enableAutoCloneIndexUpdateCheckBox= new Button(runtimeSettingsGroup, SWT.CHECK);
+	  enableAutoCloneIndexUpdateCheckBox.setText("Automatic Index Update");
+	  enableAutoCloneIndexUpdateCheckBox.setSelection(enableAutoCloneIndexUpdate);
+
+	  enableAutoCloneIndexUpdateCheckBox.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				enableAutoCloneIndexUpdate= enableAutoCloneIndexUpdateCheckBox.getSelection();
+			}
+		});
+	  enableAutoCloneIndexUpdateCheckBox.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+	  enableAutoCloneIndexUpdateCheckBox.setFont(runtimeSettingsGroup.getFont());
+	  
+	  
+	  
+	/*
+	add = new Button(runtimeSettingsGroup, SWT.PUSH);
     add.setText("Add");
     add.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+    
     delete = new Button(runtimeSettingsGroup, SWT.PUSH);
     delete.setText("Delete");
     delete.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -350,6 +445,7 @@ public class DetectionSettingsPage extends DialogPage{
       public void widgetSelected(SelectionEvent e) {
       }
     });
+    */
 
   }
 	

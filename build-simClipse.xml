@@ -7,7 +7,7 @@
 		<property name="build.root" location="dist/" />
 		<property name="build.temp" location="${build.root}/temp" />
 		<property name="build.out" location="${build.root}/product" />
-		<property name="build.deploy" location="/Users/sharif/Software/eclipse 3.6/plugins" />
+		<property name="build.deploy" location="/Users/sharif/Desktop/SimClipse_distribution/sand_box" />
 
 		<property name="bin.dir" value="bin/" />
 		<property name="eclipse.dir" value="."/>

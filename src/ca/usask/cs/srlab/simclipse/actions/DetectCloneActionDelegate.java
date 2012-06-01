@@ -6,7 +6,6 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.expressions.IEvaluationContext;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -18,6 +17,7 @@ import org.eclipse.ui.part.ViewPart;
 import ca.usask.cs.srlab.simcad.SimcadException;
 import ca.usask.cs.srlab.simclipse.SimClipseLog;
 import ca.usask.cs.srlab.simclipse.ui.handler.DetectCloneHandler;
+import ca.usask.cs.srlab.simclipse.ui.view.navigator.INavigatorItem;
 import ca.usask.cs.srlab.simclipse.ui.view.navigator.SimEclipseNavigator;
 import ca.usask.cs.srlab.simclipse.ui.view.project.IProjectViewItem;
 import ca.usask.cs.srlab.simclipse.ui.view.project.ProjectView;
@@ -31,23 +31,24 @@ public class DetectCloneActionDelegate implements IViewActionDelegate {
 	public void run(IAction action) {
 		// TODO Auto-generated method stub
 		if (action.isEnabled() && targetPart != null && selectedElement != null
-				&& (selectedElement instanceof ProjectViewItem || selectedElement instanceof IResource)) {
+				&& (selectedElement instanceof ProjectViewItem || selectedElement instanceof INavigatorItem)) {
 			// CommonViewer viewer = targetPart.getCommonViewer();
 			// Object[] expandedElements = viewer.getVisibleExpandedElements();
 			// viewer.setInput(selectedElement);
 			// viewer.setExpandedElements(expandedElements);
-			IProject project;
+			IProject project = null;
 			if(selectedElement instanceof ProjectViewItem)
 				project = ((ProjectViewItem) selectedElement)
 					.getResource().getProject();
-			else 
-				project = ((IResource)selectedElement).getProject();
+			else if (selectedElement instanceof INavigatorItem)
+				project = ((INavigatorItem) selectedElement).getProject();
 
 //			Shell shell = targetPart.getViewSite().getShell();
 //			MessageDialog.openInformation(shell, "-----TODO-----",
 //					"Update Clone Index for project : " + project.getName());
 //			
-			
+			if(project == null) return;
+				
 			// Setup execution context
 			final IHandlerService handlerService = (IHandlerService) targetPart
 					.getViewSite().getService(IHandlerService.class);
@@ -80,7 +81,7 @@ public class DetectCloneActionDelegate implements IViewActionDelegate {
 			return;
 		}
 		Object element = ssel.getFirstElement();
-		if (!(element instanceof IResource
+		if (!(element instanceof INavigatorItem
 				|| element instanceof IProjectViewItem)) {
 			action.setEnabled(false);
 			return;

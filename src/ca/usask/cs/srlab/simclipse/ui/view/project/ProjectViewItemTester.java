@@ -1,6 +1,7 @@
 package ca.usask.cs.srlab.simclipse.ui.view.project;
 
 import org.eclipse.core.expressions.PropertyTester;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IJavaProject;
 
 
@@ -35,6 +36,12 @@ public class ProjectViewItemTester extends PropertyTester {
 			if (found)
 				break;
 		}
+		
+		if(receiver instanceof IProject){
+			if(! ((IProject) receiver).isOpen() )
+				return false;
+		}
+		
 		
 //		SimClipsePlugin.getDefault().printToConsole("FOUND : "+found);
 		

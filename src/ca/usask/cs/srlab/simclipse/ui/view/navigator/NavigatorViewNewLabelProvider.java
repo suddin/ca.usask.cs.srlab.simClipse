@@ -1,9 +1,5 @@
 package ca.usask.cs.srlab.simclipse.ui.view.navigator;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.graphics.Image;
@@ -11,14 +7,19 @@ import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.navigator.IDescriptionProvider;
 
-public class CNFLabelProvider extends LabelProvider implements ILabelProvider, IDescriptionProvider
+public class NavigatorViewNewLabelProvider extends LabelProvider implements ILabelProvider, IDescriptionProvider
 {
     public String getText(Object element)
     {
-        if (element instanceof IResource)
+        if (element instanceof INavigatorItem)
         {
-        	return ((IResource) element).getName();
+        	return ((INavigatorItem) element).getName();
         }
+       
+        if(element instanceof AbstractCodeFragment){
+			return ((AbstractCodeFragment) element).getName();
+		}
+        
         return null;
     }
  
@@ -29,15 +30,18 @@ public class CNFLabelProvider extends LabelProvider implements ILabelProvider, I
     }
  
 	public Image getImage(Object element) {
-		if (element instanceof IProject) {
+		if (element instanceof NavigatorItemProject) {
 			return PlatformUI.getWorkbench().getSharedImages()
 					.getImage(org.eclipse.ui.ide.IDE.SharedImages.IMG_OBJ_PROJECT);
-		} else if (element instanceof IFolder) {
+		} else if (element instanceof NavigatorItemFolder) {
 			return PlatformUI.getWorkbench().getSharedImages()
 					.getImage(ISharedImages.IMG_OBJ_FOLDER);
-		} else if (element instanceof IFile) {
+		} else if (element instanceof NavigatorItemFile) {
 			return PlatformUI.getWorkbench().getSharedImages()
 					.getImage(ISharedImages.IMG_OBJ_FILE);
+		} else if(element instanceof NavigatorItemFileFragment){
+			return PlatformUI.getWorkbench().getSharedImages()
+					.getImage(ISharedImages.IMG_OBJ_ELEMENT);
 		}
 		return null;
 	}

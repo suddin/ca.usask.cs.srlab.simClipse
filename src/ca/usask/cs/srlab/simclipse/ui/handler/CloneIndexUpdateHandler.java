@@ -12,10 +12,16 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.swt.custom.BusyIndicator;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.handlers.HandlerUtil;
 
+import ca.usask.cs.srlab.simcad.DetectionSettings;
+import ca.usask.cs.srlab.simclipse.SimClipsePlugin;
+import ca.usask.cs.srlab.simclipse.actions.CloneIndexManager;
+import ca.usask.cs.srlab.simclipse.ui.DetectionSettingsManager;
 import ca.usask.cs.srlab.simclipse.ui.view.project.ProjectViewItem;
 
 public class CloneIndexUpdateHandler extends AbstractHandler {
@@ -59,87 +65,35 @@ public class CloneIndexUpdateHandler extends AbstractHandler {
 			return null;
 
 		Shell shell = window.getShell();
-		MessageDialog.openInformation(shell, "-----TODO-----",
-				"Update Clone Index for project : " + project.getName());
-/*
-		try {
-			window.run(true, true, new IRunnableWithProgress() {
-				public void run(IProgressMonitor monitor)
-						throws InvocationTargetException, InterruptedException {
-					monitor.beginTask("simulate status bar progress:", 10);
-					for (int i = 10; i > 0; --i) {
-						monitor.subTask("seconds left = " + i);
-						Thread.sleep(1000);
-						monitor.worked(1);
-					}
-					monitor.done();
-				}
-			});
-		} catch (InvocationTargetException e) {
-			SimClipseLog.logError(e);
-		} catch (InterruptedException e) {
-			// User canceled the operation... just ignore.
-		}
-*/
-		return null;
-	}
-	
-	/*
-	@Override
-	public Object execute(ExecutionEvent event) throws ExecutionException {
-
-		// Get the active window
-
-		IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
-		if (window == null)
-			return null;
-
-		// Get the active page
-
-		IWorkbenchPage page = window.getActivePage();
-		if (page == null)
-			return null;
-
-		// Open and simcad settings window
-
-		try {
-			ISelection selection = HandlerUtil.getCurrentSelection(event);
-			//ISelection selection = page.getSelection();
-
-			if (!(selection instanceof IStructuredSelection))
-				return null;
-			
-			Iterator<?> iter = ((IStructuredSelection) selection).iterator();
-			if (!iter.hasNext())
-				return null;
-			Object elem = iter.next();
-
-			if (!(elem instanceof IProject) && !(elem instanceof IFolder))
-				return null;
-
-			IProject project = null;
-			
-			if (elem instanceof IFolder) {
-				// find the main project
-				IFolder folder = (IFolder) ((IAdaptable) elem).getAdapter(IFolder.class);
-				project = folder.getProject();
+		final IProject fProject = project;
+		
+		BusyIndicator.showWhile(SimClipsePlugin.getActiveWorkbenchShell().getDisplay(), new Runnable() {
+			public void run() {
+				DetectionSettings detectionSettings = DetectionSettingsManager.getManager().getSavedDetectionSettingsForProject(fProject);
+				CloneIndexManager.getManager().getCloneIndex(fProject,detectionSettings, true);
 			}
+		});
+		
+		/*
+		Display.getDefault().syncExec(new Runnable() {
+			@Override
+			public void run() {
+				DetectionSettings detectionSettings = DetectionSettingsManager.getManager().getSavedDetectionSettingsForProject(fProject);
+				CloneIndexManager.getManager().getCloneIndex(fProject,detectionSettings, true);
+			}
+		});
+		
+		Display.getDefault().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				DetectionSettings detectionSettings = DetectionSettingsManager.getManager().getSavedDetectionSettingsForProject(fProject);
+				CloneIndexManager.getManager().getCloneIndex(fProject,detectionSettings, true);
+			}
+		});
+		*/
+		
+		MessageDialog.openInformation(shell, "Project : "+project.getName(), "Clone Index updated successfully");
 
-			project = (IProject) ((IAdaptable) elem).getAdapter(IProject.class);
-			if (project == null)
-				return null;
-
-			Shell shell = window.getShell();
-			MessageDialog.openInformation(
-					shell,
-					"TODO",
-					"Update Clone Index for project :"
-							+ project.getName());
-
-		} catch (Exception e) {
-			SimCadLog.logError("Failed to open the view", e);
-		}
 		return null;
 	}
-*/
 }

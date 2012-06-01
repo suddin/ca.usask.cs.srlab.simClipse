@@ -1,5 +1,7 @@
 package ca.usask.cs.srlab.simclipse;
 
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Status;
@@ -23,6 +25,9 @@ import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
+import ca.usask.cs.srlab.simclipse.clone.track.CloneTrackManager;
+import ca.usask.cs.srlab.simclipse.clone.track.ResourceChangeReporter;
+
 /**
  * The activator class controls the plug-in life cycle
  */
@@ -41,6 +46,8 @@ public class SimClipsePlugin extends AbstractUIPlugin {
 	
 	private MessageConsoleStream consoleOut;
 	
+	private IResourceChangeListener resourceChangeListener;
+
 	/**
 	 * The constructor
 	 */
@@ -58,6 +65,24 @@ public class SimClipsePlugin extends AbstractUIPlugin {
 		MessageConsole console = findConsole(CONSOLE_ID);
 		consoleOut = console.newMessageStream();
 
+		resourceChangeListener = ResourceChangeReporter.INSTANCE;
+
+		ResourcesPlugin.getWorkspace().addResourceChangeListener(resourceChangeListener, IResourceChangeEvent.POST_CHANGE);
+		
+//		Job configureDetectOnChangeJob = new Job("Configure DetectOnChange feature for simeclipse enabled project") {
+//			@Override
+//			protected IStatus run(IProgressMonitor monitor) {
+//				// this involves index update of project where DetectOnChange feature is Enabled
+//				
+				Display.getDefault().asyncExec(new Runnable() {
+					@Override
+					public void run() {
+						CloneTrackManager.getManager().configureDetectOnChangeEnabledProjects();
+					}
+				});
+				
+//		configureDetectOnChangeJob.schedule();
+
 		printToConsole("Starting simcad plugin...");
 	}
 
@@ -70,8 +95,69 @@ public class SimClipsePlugin extends AbstractUIPlugin {
 		super.stop(context);
 		if(consoleOut!=null)
 			consoleOut.close();
+		
+		if (resourceChangeListener != null) 
+			ResourcesPlugin.getWorkspace().removeResourceChangeListener(resourceChangeListener);
 	}
 
+	/*
+	try{
+			for(IFile file : tmpFileList){
+				file.getLocation().toFile().delete();
+			}
+		}catch (Exception e) {
+			// TODO: handle exception
+		}
+	   IWorkspace workspace = ResourcesPlugin.getWorkspace();
+	   IPathVariableManager pathMan = workspace.getPathVariableManager();
+	   String name = "TEMP";
+	   IPath value = new Path(System.getProperty("java.io.tmpdir")); 
+	   if (pathMan.validateName(name).isOK() && pathMan.validateValue(value).isOK()) {
+	      try {
+			pathMan.setURIValue(name, value.toFile().toURI());
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
+	   } else {
+		   System.out.println("Invalid loc");
+	   }
+	
+	   IFolder link = project.getFolder(".simclipse_temp");
+	   IPath location = new Path("TEMP/.simclipse");
+	   if (workspace.validateLinkLocation(link, location).isOK()) {
+	      try {
+	    	value.append(".simclipse").toFile().mkdirs();
+			link.createLink(location, IResource.NONE, null);
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
+	   } else {
+	      //invalid location, throw an exception or warn user
+		   System.out.println("Invalid loc");
+	   }
+	
+	   System.out.println(link.getFullPath());// ==> "/Project/Link"
+	   System.out.println(link.getLocation());// ==> "c:\temp\folder"
+	   System.out.println(link.getRawLocation());// ==> "TEMP/folder"
+	   System.out.println(link.isLinked());// ==> "true"
+	   
+	   IFile child = link.getFile("abc.txt");
+	   try {
+		child.create(new FileInputStream("/Users/sharif/Documents/workspaces/cpc/CPC_Core/preferences.ini"), true, null);
+	} catch (FileNotFoundException e1) {
+		e1.printStackTrace();
+	} catch (CoreException e1) {
+		e1.printStackTrace();
+	}
+	System.out.println(child.getFullPath());// ==> "/Project/Link/abc.txt"
+	System.out.println(child.getLocation());// ==> "c:\temp\folder\abc.txt"
+	System.out.println(child.getRawLocation());// ==> "c:\temp\folder\abc.txt"
+	System.out.println(child.isLinked());// ==> "false"
+	
+	*/
+	
+	
+	
 	/**
 	 * Returns the shared instance
 	 *

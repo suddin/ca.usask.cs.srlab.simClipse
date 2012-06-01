@@ -21,9 +21,15 @@ class ProjectViewLabelProvider extends LabelProvider
 			if (obj != null)
 				return obj.toString();
 			return "";
+		case 3: // Location column
+			if (obj instanceof IProjectViewItem)
+				return ((IProjectViewItem) obj).isDetectOnChangeEnable() ? "Enable":"Disable";
+				//((IProjectViewItem) obj).getLocation();
+			return "";
 		case 2: // Location column
 			if (obj instanceof IProjectViewItem)
-				return ((IProjectViewItem) obj).getLocation();
+				return ((IProjectViewItem) obj).isDetectOnChangeEnable() ? "Enable":"Disable";
+				//((IProjectViewItem) obj).getLocation();
 			return "";
 		default:
 			return "";

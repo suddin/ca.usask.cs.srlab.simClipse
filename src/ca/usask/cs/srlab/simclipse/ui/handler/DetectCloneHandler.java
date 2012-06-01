@@ -5,11 +5,7 @@ import java.util.Iterator;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -24,6 +20,7 @@ import ca.usask.cs.srlab.simclipse.SimClipsePlugin;
 import ca.usask.cs.srlab.simclipse.ui.DetectionSettingsManager;
 import ca.usask.cs.srlab.simclipse.ui.preferences.PreferenceConstants;
 import ca.usask.cs.srlab.simclipse.ui.view.clone.CloneDetectionManager;
+import ca.usask.cs.srlab.simclipse.ui.view.navigator.INavigatorItem;
 import ca.usask.cs.srlab.simclipse.ui.view.project.ProjectViewItem;
 
 public class DetectCloneHandler extends AbstractHandler {
@@ -58,14 +55,9 @@ public class DetectCloneHandler extends AbstractHandler {
 
 			if (!(elem instanceof IJavaProject
 					|| elem instanceof ProjectViewItem
-					|| elem instanceof IProject 
-					|| elem instanceof IFolder
-					|| elem instanceof IFile))
+					|| elem instanceof INavigatorItem))
 				return null;
 
-			//IProject scopeProject = null;
-			IResource candidateResource = null;
-			
 			if (elem instanceof ProjectViewItem) {
 				// find the main project
 				elem = ((ProjectViewItem)elem).getResource().getProject();
@@ -75,19 +67,15 @@ public class DetectCloneHandler extends AbstractHandler {
 				// find the main project
 				elem = ((IJavaProject)elem).getProject();
 			} 
-			
-			if (elem instanceof IProject) {
-				candidateResource = (IProject) ((IAdaptable) elem).getAdapter(IProject.class);
+
+			if (elem instanceof INavigatorItem) {
+				elem = ((INavigatorItem)elem).getProject();
 			}
 			
-			if (elem instanceof IFolder) {
-				candidateResource = (IFolder) ((IAdaptable) elem).getAdapter(IFolder.class);
-			}
+			IResource candidateResource = (IResource) elem;
 			
-			if (elem instanceof IFile) {
-				candidateResource = (IFile) ((IAdaptable) elem).getAdapter(IFile.class);
-			}
-			
+			if(candidateResource == null) return null;
+ 			
 			DetectionSettings detectionSettings;
 			Boolean popDetectionSettingPage = SimClipsePlugin.getDefault().getPreferenceStore().getBoolean(PreferenceConstants.SIMCAD_DETECTION_SETTING_POPUP);
 			

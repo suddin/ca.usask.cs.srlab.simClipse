@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.swt.SWT;
 
 import ca.usask.cs.srlab.simclipse.SimClipsePlugin;
 
@@ -62,5 +63,10 @@ public class CloneProjectDisplayModel implements ICloneViewItem{
 	@Override
 	public ImageDescriptor getImageDescriptor() {
 		return SimClipsePlugin.getImageDescriptor("clone_project.png");
+	}
+
+	@Override
+	public int getLabelTextColor() {
+		return SWT.COLOR_BLACK;
 	}
 }

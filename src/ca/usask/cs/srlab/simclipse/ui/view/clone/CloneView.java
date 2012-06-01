@@ -1,7 +1,10 @@
 package ca.usask.cs.srlab.simclipse.ui.view.clone;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.jface.action.IMenuListener;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.Position;
@@ -12,6 +15,8 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.FileEditorInput;
@@ -43,10 +48,30 @@ public class CloneView extends ViewPart {
 		viewer.expandAll();
 		getSite().setSelectionProvider(viewer);
 		
+		createContextMenu() ;
+		
 		hookDoubleCLickAction();
 	}
 
 	
+	private void createContextMenu() {
+		MenuManager menuMgr = new MenuManager("#PopupMenu", "ca.usask.cs.simclipse.cloneView.popupMenu");
+		menuMgr.setRemoveAllWhenShown(true);
+		menuMgr.addMenuListener(new IMenuListener() {
+			public void menuAboutToShow(IMenuManager m) {
+				CloneView.this.fillContextMenu(m);
+			}
+		});
+		Menu menu = menuMgr.createContextMenu(viewer.getControl());
+		viewer.getControl().setMenu(menu);
+		getSite().registerContextMenu(menuMgr, viewer);
+	}
+
+	private void fillContextMenu(IMenuManager menuMgr) {
+		menuMgr.add(new Separator("edit"));
+		// menuMgr.add(removeContributionItem);
+		menuMgr.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
+	}
 	
 	@Override
 	public void setFocus() {

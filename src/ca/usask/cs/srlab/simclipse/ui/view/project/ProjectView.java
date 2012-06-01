@@ -29,7 +29,9 @@ public class ProjectView extends ViewPart {
 	private TableViewer viewer;
 	private TableColumn typeColumn; 
 	private TableColumn nameColumn; 
-	private TableColumn locationColumn;
+	private TableColumn detectOnChangeStatusColumn;
+	private TableColumn autoIndexUpdateColumn;
+	
 	
 	private ProjectViewSorter sorter;
 	//private IMemento memento;
@@ -60,9 +62,14 @@ public class ProjectView extends ViewPart {
 	    nameColumn.setText("Name");
 	    layout.setColumnData(nameColumn, new ColumnWeightData(4));
 
-	    locationColumn = new TableColumn(table, SWT.LEFT);
-	    locationColumn.setText("Location");
-	    layout.setColumnData(locationColumn, new ColumnWeightData(9));
+	    autoIndexUpdateColumn = new TableColumn(table, SWT.LEFT);
+	    autoIndexUpdateColumn.setText("Automatic Index Update");
+	    layout.setColumnData(autoIndexUpdateColumn, new ColumnWeightData(5));
+	    
+	    detectOnChangeStatusColumn = new TableColumn(table, SWT.LEFT);
+	    detectOnChangeStatusColumn.setText("Notify clone on code change");
+	    layout.setColumnData(detectOnChangeStatusColumn, new ColumnWeightData(5));
+
 		
 		table.setHeaderVisible(true); 
 		table.setLinesVisible(false);
@@ -83,7 +90,7 @@ public class ProjectView extends ViewPart {
 
 	
 	private void createContextMenu() {
-		MenuManager menuMgr = new MenuManager("#PopupMenu", "ca.usask.cs.simclipse.projectView.contextMenu");
+		MenuManager menuMgr = new MenuManager("#PopupMenu", "ca.usask.cs.simclipse.projectView.popupMenu");
 		menuMgr.setRemoveAllWhenShown(true);
 		menuMgr.addMenuListener(new IMenuListener() {
 			public void menuAboutToShow(IMenuManager m) {
@@ -120,7 +127,7 @@ public class ProjectView extends ViewPart {
 			}
 		};
 		sorter = new ProjectViewSorter(viewer, new TableColumn[] {
-				nameColumn, locationColumn, typeColumn }, new Comparator[] {
+				nameColumn, detectOnChangeStatusColumn, typeColumn }, new Comparator[] {
 				nameComparator, locationComparator, typeComparator });
 //		if (memento != null)
 //			sorter.init(memento);

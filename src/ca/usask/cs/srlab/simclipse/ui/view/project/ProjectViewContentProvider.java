@@ -13,10 +13,10 @@ class ProjectViewContentProvider implements IStructuredContentProvider, ProjectV
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 		this.viewer = (TableViewer) viewer;
 		if (manager != null)
-			manager.removeSimClipseManagerListener(this);
+			manager.removeProjectViewManagerListener(this);
 		manager = (ProjectViewManager) newInput;
 		if (manager != null)
-			manager.addSimClipseManagerListener(this);
+			manager.addProjectViewManagerListener(this);
 	}
 
 	public void dispose() {

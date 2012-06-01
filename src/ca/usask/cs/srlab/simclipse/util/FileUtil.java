@@ -1,6 +1,7 @@
 package ca.usask.cs.srlab.simclipse.util;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,6 +12,10 @@ import org.eclipse.core.runtime.CoreException;
 
 public class FileUtil {
 
+	static public boolean deleteDirectory(String path){
+		return deleteDirectory(new File(path)) ;
+	}
+	
 	static public boolean deleteDirectory(File path) {
 	    if( path.exists() ) {
 	      File[] files = path.listFiles();
@@ -45,4 +50,9 @@ public class FileUtil {
 		}
 		return fileList;
 	}
+
+//	public static void setHidden(File file) throws InterruptedException, IOException {
+//	    Process p = Runtime.getRuntime().exec("attrib +H " + file.getPath());
+//	    p.waitFor();
+//	}
 }

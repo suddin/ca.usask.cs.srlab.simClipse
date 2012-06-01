@@ -7,6 +7,7 @@ import org.eclipse.jface.resource.ImageDescriptor;
 
 public interface ICloneViewItem /*extends IAdaptable*/ {
 	//String getName();
+	int getLabelTextColor();
 	ICloneViewItem getParent();
 	List<ICloneViewItem> getChildren();
 	String getDisplayLabel();

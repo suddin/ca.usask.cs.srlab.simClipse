@@ -7,14 +7,17 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.swt.SWT;
 
 import ca.usask.cs.srlab.simcad.model.CloneFragment;
+import ca.usask.cs.srlab.simcad.model.CloneSet;
 import ca.usask.cs.srlab.simcad.model.ICloneFragment;
 import ca.usask.cs.srlab.simclipse.SimClipsePlugin;
 
 public class CloneFragmentDisplayModel extends CloneFragment implements ICloneViewItem{
 	
 	private CloneSetDisplayModel parentCloneSet;
+	private Integer labelTextColorCode;// = SWT.COLOR_RED;
 	
 	public CloneFragmentDisplayModel(ICloneFragment cloneFragment, CloneSetDisplayModel parentCloneSet) {
 		super((CloneFragment) cloneFragment);
@@ -28,6 +31,23 @@ public class CloneFragmentDisplayModel extends CloneFragment implements ICloneVi
 	public String getDisplayLabel(){
 		return getFileName() +" [Line: "+getFromLine()+"-"+getToLine()+"]";
 	} 
+	
+	public int getLabelTextColor(){
+		if(labelTextColorCode == null){
+			//return getParentCloneSet().getLabelTextColor();
+			if(getParentCloneSet().getCloneType().equals(CloneSet.CLONE_TYPE_1))
+				return SWT.COLOR_MAGENTA;
+			else if(getParentCloneSet().getCloneType().equals(CloneSet.CLONE_TYPE_2))
+				return SWT.COLOR_DARK_GREEN;
+			else 
+				return SWT.COLOR_BLUE;
+		}else 
+			return labelTextColorCode;
+	}
+	
+	public void setLabelTextColorCode(Integer labelTextColorCode) {
+		this.labelTextColorCode = labelTextColorCode;
+	}
 	
 	public IFile getResource(){
 		IProject project = parentCloneSet.getParentProject().getProject();

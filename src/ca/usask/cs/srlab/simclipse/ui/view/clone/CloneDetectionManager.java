@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -18,10 +19,15 @@ import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.swt.widgets.Shell;
 
 import ca.usask.cs.srlab.simcad.DetectionSettings;
-import ca.usask.cs.srlab.simcad.model.CloneSet;
+import ca.usask.cs.srlab.simcad.index.ICloneIndex;
+import ca.usask.cs.srlab.simcad.model.CloneFragment;
+import ca.usask.cs.srlab.simcad.util.PropsUtil;
 import ca.usask.cs.srlab.simclipse.SimClipseLog;
 import ca.usask.cs.srlab.simclipse.SimClipsePlugin;
+import ca.usask.cs.srlab.simclipse.actions.CloneIndexManager;
 import ca.usask.cs.srlab.simclipse.command.DetectCloneOperation;
+import ca.usask.cs.srlab.simclipse.ui.view.navigator.NavigatorItemFileFragment;
+import ca.usask.cs.srlab.simclipse.util.FileUtil;
 
 public final class CloneDetectionManager {
 	private static CloneDetectionManager manager;
@@ -46,6 +52,44 @@ public final class CloneDetectionManager {
 		listeners.remove(listener);
 	}
 
+
+	private List<CloneFragment> getCandidateFragments(IResource resource, ICloneIndex cloneIndex) {
+		
+		if(resource == null) return null;
+		
+		Collection<CloneFragment> candidateFragments;
+		List<IFile> fileList = new ArrayList<IFile>();
+		
+		 	if(resource instanceof IProject)
+		 		candidateFragments = cloneIndex.getAllEntries();
+		 	else{
+		 		candidateFragments = new ArrayList<CloneFragment>();
+			 	if(resource instanceof IFolder)
+					fileList.addAll(FileUtil.getFilesFromFolder((IFolder)resource));
+				else if(resource instanceof IFile)
+					fileList.add((IFile) resource);
+				else if(resource instanceof NavigatorItemFileFragment){
+					candidateFragments.add(((NavigatorItemFileFragment)resource).getCodeFragment());
+				}
+				
+				boolean isUrlRelative = PropsUtil.getIsFragmentFileRelativeURL();
+				
+				for(IFile file :  fileList){
+					Collection<CloneFragment> cloneFragments = CloneIndexManager.getCloneFragmentsbyResourceId(
+							cloneIndex, isUrlRelative, file);
+	
+					if (cloneFragments != null)
+						candidateFragments.addAll(cloneFragments);
+				}
+		 	}
+//		if(candidateFragments == null || candidateFragments.isEmpty()){
+//			throw new SimClipseException("Error in identifying the candidate fragments for clone detection");
+//		}
+		
+		return  (List<CloneFragment>) candidateFragments;
+	}
+	
+	
 	public void detectClone(IResource candidateForCloneDetection, IProject scopeForCloneDetection, DetectionSettings detectionSettings) {
 		//this.detectionSettings = detectionSettings;
 		
@@ -53,10 +97,14 @@ public final class CloneDetectionManager {
 		
 		SimClipsePlugin.getDefault().printToConsole("detecting clone for : " + scopeForCloneDetection.getName());
 		
+		ICloneIndex cloneIndex = CloneIndexManager.getManager().getCloneIndex(scopeForCloneDetection, detectionSettings, false);
+		
+		List<CloneFragment> candidateFragments = getCandidateFragments(candidateForCloneDetection, cloneIndex);
+		
+		if(candidateFragments == null || candidateFragments.isEmpty() ) return;
+		
          //final DetectCloneOperation detectCloneOperation = new DetectCloneOperation(projectForCloneDetection, detectionSettings);
-		final DetectCloneOperation detectCloneOperation = (candidateForCloneDetection instanceof IProject) ? 
-				new DetectCloneOperation(Arrays.asList(scopeForCloneDetection), detectionSettings): 
-				new DetectCloneOperation(Arrays.asList(candidateForCloneDetection), Arrays.asList(scopeForCloneDetection), detectionSettings);
+		final DetectCloneOperation detectCloneOperation = new DetectCloneOperation(candidateFragments, cloneIndex, detectionSettings);
 			 
 	      // Execute the operation
 	     try {
@@ -72,6 +120,8 @@ public final class CloneDetectionManager {
 	         //IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
 	         //IRunnableContext context = window.getWorkbench().getProgressService();
 	         
+	         //http://wiki.eclipse.org/FAQ_What_are_IWorkspaceRunnable,_IRunnableWithProgress,_and_WorkspaceModifyOperation%3F
+	        	 
 	         context.run(true, false, new IRunnableWithProgress() {
 	            public void run(IProgressMonitor monitor) throws InvocationTargetException,
 	                  InterruptedException {
@@ -98,12 +148,12 @@ public final class CloneDetectionManager {
 				return;
 			}
 			
-			CloneViewManager.getManager().displayClone(
-					scopeForCloneDetection,
-					buildCloneDisplayModel(scopeForCloneDetection,
-							detectCloneOperation.getDetectionResult(),
-							detectionSettings));
-		} catch (CloneNotSupportedException e) {
+			if(candidateForCloneDetection instanceof IProject ||candidateForCloneDetection instanceof IFolder)
+				CloneViewManager.getManager().displayClone(scopeForCloneDetection, detectCloneOperation.getDetectionResult(), detectionSettings);
+			else
+				CloneViewManager.getManager().displayClone(scopeForCloneDetection, candidateFragments, detectCloneOperation.getDetectionResult(), detectionSettings);
+			
+		} catch (Exception e) {
 			e.printStackTrace();
 			SimClipsePlugin.getDefault().printToConsole("error occured in display clone manager...");
 		}
@@ -111,32 +161,18 @@ public final class CloneDetectionManager {
 		//fireCloneviewItemChagned();
 	}
 
+	/*
+	long-running operation
 	
-	private Collection<CloneProjectDisplayModel> buildCloneDisplayModel(IResource iResource, List<CloneSet> detectionResult, DetectionSettings detectionSettings) throws CloneNotSupportedException {
-		List<CloneProjectDisplayModel> cloneProjectModels = new ArrayList<CloneProjectDisplayModel>();
-		
-		IProject project = iResource.getProject();
-		
-		try{
-		
-		//this is root of a tree in the forest
-		CloneProjectDisplayModel cpm = new CloneProjectDisplayModel(project, detectionSettings.getCloneSetType());
-		cloneProjectModels.add(cpm);
-		
-		for(CloneSet cloneSet : detectionResult){
-			CloneSetDisplayModel cloneSetModel = new CloneSetDisplayModel(cloneSet , cpm);
-			cpm.addCloneSetModel(cloneSetModel);
+	IWorkspaceRunnable myRunnable = 
+	new IWorkspaceRunnable() {
+		public void run(IProgressMonitor monitor) throws CoreException {
+			//do the actual work in here
+			...
 		}
-		
-		}catch (Exception e) {
-			e.printStackTrace();
-			SimClipseLog.logError("Error occured in building clone display models", e);
-			SimClipsePlugin.getDefault().printToConsole("Error occured in building clone display models...", e);
-		}
-		
-		return cloneProjectModels;
 	}
 	
+	*/
 	
 	private void fireCloneviewItemChagned() {
 		CloneViewEvent event = null;// = new CloneViewEvent(this,

@@ -5,10 +5,15 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 
+import ca.usask.cs.srlab.simcad.DetectionSettings;
+import ca.usask.cs.srlab.simclipse.SimClipsePlugin;
+import ca.usask.cs.srlab.simclipse.ui.DetectionSettingsManager;
+import ca.usask.cs.srlab.simclipse.ui.view.navigator.INavigatorItem;
 import ca.usask.cs.srlab.simclipse.ui.view.project.ProjectView;
 import ca.usask.cs.srlab.simclipse.ui.view.project.ProjectViewItem;
 
@@ -25,31 +30,24 @@ public class UpdateCloneIndexActionDeligate implements IViewActionDelegate {
 	public void run(IAction action) {
 		// TODO Auto-generated method stub
 		if (action.isEnabled() && targetPart != null && selectedElement != null
-				&& selectedElement instanceof ProjectViewItem) {
-			// CommonViewer viewer = targetPart.getCommonViewer();
-			// Object[] expandedElements = viewer.getVisibleExpandedElements();
-			// viewer.setInput(selectedElement);
-			// viewer.setExpandedElements(expandedElements);
-			IProject project = ((ProjectViewItem) selectedElement)
+				&& (selectedElement instanceof ProjectViewItem || selectedElement instanceof INavigatorItem )) {
+
+			final IProject project = ((ProjectViewItem) selectedElement)
 					.getResource().getProject();
 
-			Shell shell = targetPart.getViewSite().getShell();
-			MessageDialog.openInformation(shell, "-----TODO-----",
-					"Update Clone Index for project : " + project.getName());
 			
-			/*/test
-			try {
-				List<IVehicle> vehicleList = VehicleFactory.loadVehicle();
-				for (IVehicle vehicle : vehicleList) {
-					vehicle.printVehicleName();
+			BusyIndicator.showWhile(SimClipsePlugin.getActiveWorkbenchShell().getDisplay(), new Runnable() {
+				public void run() {
+					DetectionSettings detectionSettings = DetectionSettingsManager
+							.getManager().getSavedDetectionSettingsForProject(project);
+					CloneIndexManager.getManager().getCloneIndex(
+							project,detectionSettings, true);
 				}
-			} catch (InvalidPropertiesFormatException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			/*/
+			});
 			
+			Shell shell = targetPart.getViewSite().getShell();
+			MessageDialog.openInformation(shell, "Project :"+project.getName(),
+					"Clone Index updated successfully");
 		}
 	}
 

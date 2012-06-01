@@ -9,12 +9,18 @@ import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 
 import ca.usask.cs.srlab.simcad.DetectionSettings;
+import ca.usask.cs.srlab.simcad.model.CloneFragment;
+import ca.usask.cs.srlab.simcad.model.CloneSet;
+import ca.usask.cs.srlab.simcad.model.ICloneFragment;
 import ca.usask.cs.srlab.simclipse.SimClipseException;
+import ca.usask.cs.srlab.simclipse.SimClipseLog;
 import ca.usask.cs.srlab.simclipse.SimClipsePlugin;
 import ca.usask.cs.srlab.simclipse.ui.DetectionSettingsManager;
 import ca.usask.cs.srlab.simclipse.ui.preferences.PreferenceConstants;
@@ -95,6 +101,9 @@ public class CloneViewManager
 	
 	
 	public void displayClone(IResource selection, Collection<CloneProjectDisplayModel> cloneViewItems) {
+		
+		if(cloneViewItems == null || cloneViewItems.isEmpty()) return;
+		
 		this.cloneViewItems.clear();
 		this.cloneViewItems.addAll(cloneViewItems);
 		if(selection instanceof IProject)
@@ -106,26 +115,30 @@ public class CloneViewManager
 //	    	  SimClipsePlugin.getDefault().printToConsole(model.getDisplayLabel());
 //	      }
 //		
-		
-		IWorkbenchPage page = SimClipsePlugin.getActivePage();
-		if (page == null)
-			return;
+		final IWorkbenchPage page = SimClipsePlugin.getActivePage();
+		if (page == null) return;
 
-		try {
-			if (page != null) {
-				IViewPart view = SimClipsePlugin.getViewIfExists(CloneView.ID);
-					//page.findView(ProjectView.ID);
-				if (view != null)
-					page.bringToTop(view);
-				else{
-					page.showView(CloneView.ID);
-					//new item will be picked up by a call to getProjectViewItems()
-					return;
+		Display.getDefault().asyncExec(new Runnable() {
+			
+			@Override
+			public void run() {
+				try {
+					if (page != null) {
+						IViewPart view = SimClipsePlugin.getViewIfExists(CloneView.ID);
+							//page.findView(ProjectView.ID);
+						if (view != null)
+							page.bringToTop(view);
+						else{
+							page.showView(CloneView.ID);
+							//new item will be picked up by a call to getProjectViewItems()
+							return;
+						}
+					}
+				} catch (PartInitException e) {
+					e.printStackTrace();
 				}
 			}
-		} catch (PartInitException e) {
-			e.printStackTrace();
-		}
+		});
 		
 		fireCloneviewItemChagned();
 	}
@@ -154,6 +167,89 @@ public class CloneViewManager
 		}else{
 			SimClipsePlugin.getDefault().printToConsole("Warning! Detection Cache full. Deactivate SimClipse for other project to free cache space");
 		}
+	}
+	
+	public void displayClone(IResource selectedResource, List<CloneFragment> candidateFragments, List<CloneSet> detectionResult, DetectionSettings detectionSettings) {
+		try {
+			
+			Collection<CloneProjectDisplayModel> cloneDisplayModel = buildCloneDisplayModel(selectedResource, candidateFragments, detectionResult, detectionSettings);
+			displayClone(selectedResource, cloneDisplayModel);
+
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void displayClone(IResource selectedResource, List<CloneSet> detectionResult, DetectionSettings detectionSettings) {
+		try {
+			
+			Collection<CloneProjectDisplayModel> cloneDisplayModel = buildCloneDisplayModel(selectedResource, detectionResult, detectionSettings);
+			displayClone(selectedResource, cloneDisplayModel);
+
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public Collection<CloneProjectDisplayModel> buildCloneDisplayModel(IResource selectedResource, List<CloneFragment> candidateFragments, List<CloneSet> detectionResult, DetectionSettings detectionSettings) throws CloneNotSupportedException {
+		
+		List<CloneProjectDisplayModel> cloneProjectModels = new ArrayList<CloneProjectDisplayModel>();
+		try{
+			//this is root of a tree in the forest
+			CloneProjectDisplayModel cpm = new CloneProjectDisplayModel(selectedResource.getProject(), detectionSettings.getCloneSetType());
+			cloneProjectModels.add(cpm);
+			
+			for(CloneSet cloneSet : detectionResult){
+				CloneSetDisplayModel cloneSetModel = new CloneSetDisplayModel(cloneSet , cpm);
+				
+				for(ICloneFragment iCloneFragment : cloneSet.getCloneFragments()){
+					CloneFragment cf = (CloneFragment) iCloneFragment;
+					CloneFragmentDisplayModel cloneFragmentModel = new CloneFragmentDisplayModel(cf.clone() , cloneSetModel);
+					
+					if(candidateFragments.contains(cf)){
+						cloneFragmentModel.setLabelTextColorCode(SWT.COLOR_RED);
+					}
+					
+					cloneSetModel.addCloneFragmentModel(cloneFragmentModel);
+				}
+				
+				cpm.addCloneSetModel(cloneSetModel);
+			}
+			
+		}catch (Exception e) {
+			e.printStackTrace();
+			SimClipseLog.logError("Error occured in building clone display models", e);
+			SimClipsePlugin.getDefault().printToConsole("Error occured in building clone display models...", e);
+		}
+		
+		return cloneProjectModels;
+	}
+	
+	public Collection<CloneProjectDisplayModel> buildCloneDisplayModel(IResource selectedResource, List<CloneSet> detectionResult, DetectionSettings detectionSettings) throws CloneNotSupportedException {
+		List<CloneProjectDisplayModel> cloneProjectModels = new ArrayList<CloneProjectDisplayModel>();
+		
+		try{
+			//this is root of a tree in the forest
+			CloneProjectDisplayModel cpm = new CloneProjectDisplayModel(selectedResource.getProject(), detectionSettings.getCloneSetType());
+			cloneProjectModels.add(cpm);
+			
+			for(CloneSet cloneSet : detectionResult){
+				CloneSetDisplayModel cloneSetModel = new CloneSetDisplayModel(cloneSet , cpm);
+				for(ICloneFragment iCloneFragment : cloneSet.getCloneFragments()){
+					CloneFragment cf = (CloneFragment) iCloneFragment;
+					CloneFragmentDisplayModel cloneFragmentModel = new CloneFragmentDisplayModel(cf.clone() , cloneSetModel);
+					cloneSetModel.addCloneFragmentModel(cloneFragmentModel);
+				}
+				cpm.addCloneSetModel(cloneSetModel);
+			}
+			
+			}catch (Exception e) {
+				e.printStackTrace();
+				SimClipseLog.logError("Error occured in building clone display models", e);
+				SimClipsePlugin.getDefault().printToConsole("Error occured in building clone display models...", e);
+			}
+		
+		return cloneProjectModels;
 	}
 
 }

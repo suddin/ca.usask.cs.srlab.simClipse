@@ -11,14 +11,27 @@ public class ProjectViewItem implements IProjectViewItem
 	private ProjectViewItemType type;
 	private IResource resource;
 	private String name;
+	private boolean isDetectOnChangeEnable;
+	private boolean isAutoCloneIndexUpdate;
+	private boolean isProjectOpen;
 
-	ProjectViewItem(ProjectViewItemType type, IResource resource) {
+	ProjectViewItem(ProjectViewItemType type, IResource resource){
+		this(type, resource, false, false);
+		isProjectOpen = resource.getProject().isOpen();
+	}
+	
+	boolean isProjectOpen(){
+		return isProjectOpen;
+	}
+	
+	public ProjectViewItem(ProjectViewItemType type, IResource resource, boolean isDetectOnChangeEnable, boolean isAutoCloneIndexUpdate) {
 		this.type = type;
 		this.resource = resource;
+		this.isDetectOnChangeEnable = isDetectOnChangeEnable;
+		this.isAutoCloneIndexUpdate = isAutoCloneIndexUpdate;
 	}
 
-	public static ProjectViewItem loadProjectViewItem(ProjectViewItemType type,
-			String info) {
+	public static ProjectViewItem loadProjectViewItem(ProjectViewItemType type, String info) {
 		IResource res = ResourcesPlugin.getWorkspace().getRoot().findMember(new Path(info)); 
 		if (res == null)
 			return null;
@@ -39,6 +52,26 @@ public class ProjectViewItem implements IProjectViewItem
 		return resource;
 	}
 	
+	@Override
+	public boolean isDetectOnChangeEnable() {
+		return isDetectOnChangeEnable;
+	}
+
+	@Override
+	public void setDetectOnChangeEnable(boolean isDetectOnChangeEnable) {
+		this.isDetectOnChangeEnable = isDetectOnChangeEnable;
+	}
+
+	@Override
+	public boolean isAutoCloneIndexUpdate() {
+		return isAutoCloneIndexUpdate;
+	}
+
+	@Override
+	public void setAutoCloneIndexUpdate(boolean isAutoCloneIndexUpdate) {
+		this.isAutoCloneIndexUpdate = isAutoCloneIndexUpdate;
+	}
+
 	public String getLocation() {
 		IPath path = resource.getLocation().removeLastSegments(1);
 		if (path.segmentCount() == 0)
@@ -72,8 +105,8 @@ public class ProjectViewItem implements IProjectViewItem
    }
 
 	private Object getAdapterDelegate(Class<?> adapter) {
-		if (adapter.isInstance(resource))
-			return resource;
+//		if (adapter.isInstance(resource))
+//			return resource;
 		return Platform.getAdapterManager().getAdapter(this, adapter);
 	}
 

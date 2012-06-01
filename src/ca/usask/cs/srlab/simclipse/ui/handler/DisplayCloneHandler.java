@@ -11,11 +11,13 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 import ca.usask.cs.srlab.simclipse.SimClipseLog;
+import ca.usask.cs.srlab.simclipse.SimClipsePlugin;
 import ca.usask.cs.srlab.simclipse.ui.view.clone.CloneViewManager;
 import ca.usask.cs.srlab.simclipse.ui.view.project.ProjectViewItem;
 
@@ -33,11 +35,21 @@ public class DisplayCloneHandler extends AbstractHandler {
 		// Get the active page
 		IWorkbenchPage page = window.getActivePage();
 		if (page == null)
-			return null;
-
+		{	
+			page = SimClipsePlugin.getActivePage();
+			if(page == null)
+				return null;
+		}
 		try {
 
 			ISelection selection = page.getSelection();
+			
+			if(selection == null){
+				if(event.getTrigger() instanceof IProject){
+					selection = new StructuredSelection(event.getTrigger());
+				}
+				if(selection == null) return null;
+			}
 
 			if (!(selection instanceof IStructuredSelection))
 				return null;
